@@ -1,0 +1,718 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-07-20T22:32:00Z",
+  "plugins": [
+    {
+      "id": "com.openhpsdr.zeus.plugins.localsignon",
+      "channel": "official",
+      "name": "Local Sign-On",
+      "description": "Entitlement plugin for offline Zeus account sign-on. User management gates access by subscription and expiry.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/Kb2uka/openhpsdr-zeus-plugins",
+      "categories": [
+        "auth"
+      ],
+      "verified": false,
+      "subscription": {
+        "required": true,
+        "monthlyPriceCents": 499,
+        "currency": "USD",
+        "checkoutUrl": null,
+        "notes": "Monthly Local Sign-On subscription"
+      },
+      "versions": [
+        {
+          "version": "0.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/local-sign-on-v0.1.0/local-sign-on-0.1.0.zip",
+          "sha256": "bd998fc8399195254dc3a73098b7d04f467823b30973fab730076247529e96a3"
+        }
+      ]
+    },
+    {
+      "id": "com.zeussdr.plugins.remoteaccess",
+      "channel": "official",
+      "name": "Remote Access",
+      "description": "Entitlement plugin for secure WebRTC remote radio access. Zeus gates signaling, session setup, and active operation by this plugin id.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/Zeus-SDR/openhpsdr-zeus-plugins",
+      "categories": [
+        "auth"
+      ],
+      "verified": false,
+      "versions": [
+        {
+          "version": "0.2.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/remote-access-v0.2.0/remote-access-0.2.0.zip",
+          "sha256": "47ead44393564f3863691cb1396ab8422aa95494b997480f9cc958930748abc8"
+        }
+      ]
+    },
+    {
+      "id": "com.openhpsdr.zeus.plugins.antennagenius",
+      "channel": "official",
+      "name": "4O3A Antenna Genius",
+      "description": "Discover and control 4O3A Antenna Genius antenna switches on the LAN. UDP discovery on port 9007, TCP command channel, automatic reconnect, per-port antenna selection, and a manual IP/port override for networks whose switch filters the discovery broadcast.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-3.0-only",
+      "homepage": "https://www.4o3a.com/index.php/products/antenna-genius",
+      "categories": [
+        "switches"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "0.2.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/antennagenius-v0.2.0/antennagenius-0.2.0.zip",
+          "sha256": "e608fbf1d4fec9c8620852ecd085dee92b5769a7bfa637a67eb49087656eb04b"
+        },
+        {
+          "version": "0.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/antennagenius-v0.1.0/antennagenius-0.1.0.zip",
+          "sha256": "3fdf057656320b476b338ee8f4f8f1aeffa8d84a6d34d1f8df08c28aafdbd6c2"
+        }
+      ]
+    },
+    {
+      "id": "com.openhpsdr.zeus.plugins.pgxl",
+      "channel": "official",
+      "name": "4O3A Power Genius XL",
+      "description": "4O3A Power Genius XL solid-state amplifier control. UDP discovery and TCP control on :9008; surfaces operate/standby, A/B band+bias, forward power, SWR, drive, PA current, temperature, and FlexRadio pairing override.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-3.0-only",
+      "homepage": "https://www.4o3a.com/index.php/products/power-genius-xl",
+      "categories": [
+        "amplifiers"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "1.0.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/pgxl-v1.0.0/pgxl-1.0.0.zip",
+          "sha256": "6a3189feefe2c4ed2265cebd7520b731c161ca9d1f15d8dbd33230384f384ec1"
+        }
+      ]
+    },
+    {
+      "id": "com.openhpsdr.zeus.plugins.tgxl",
+      "channel": "official",
+      "name": "4O3A Tuner Genius XL",
+      "description": "4O3A Tuner Genius XL antenna tuner control. UDP :9010 discovery, TCP :9010 control. One L/C matching network serving up to two radios (SO2R). Live status (forward power, SWR, L/C1/C2, port A/B), tune/bypass/operate controls.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-3.0-only",
+      "homepage": "https://www.4o3a.com/index.php/products/tuner-genius-xl",
+      "categories": [
+        "tuners"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "1.0.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/tgxl-v1.0.0/tgxl-1.0.0.zip",
+          "sha256": "a4d9e798c34e999f117716ca6f332963a983cc7ba7953749fc6c5181856ef09d"
+        }
+      ]
+    },
+    {
+      "id": "com.openhpsdr.zeus.plugins.rf2k",
+      "channel": "official",
+      "name": "RF-Kit RF2K-S Amplifier",
+      "description": "Operator console for the RF-Kit RF2K-S amplifier. Forward/reflected power, SWR, tuner status, antenna selection, operate/standby, fault reset, and VNC-injected Tune/Bypass. Talks to the amp's REST API on :8080 and its VNC on :5900.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/Kb2uka/openhpsdr-zeus",
+      "categories": [
+        "amplifiers"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "1.0.1",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/rf2k-v1.0.1/rf2k-1.0.1.zip",
+          "sha256": "7b4998ae4510b6869851ff85dc357fbc64c6bb4a22ccaa72a27dfe8820f467b1"
+        },
+        {
+          "version": "1.0.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/rf2k-v1.0.0/rf2k-1.0.0.zip",
+          "sha256": "9d6f08c800806bbf1b3b3dfae8007d463326193b02696c62144cbf98313fe72f"
+        }
+      ]
+    },
+    {
+      "id": "com.openhpsdr.zeus.samples.eq",
+      "channel": "official",
+      "name": "EQ (10-band parametric)",
+      "description": "First block of the Zeus voice audio chain v1 (issue #332). Ten-band parametric EQ with per-band frequency, gain, and Q controls plus a draggable transfer-function curve. RBJ Audio EQ Cookbook peaking biquads. Operator presets persist across restart. Realtime managed C#, no native dependency.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/Kb2uka/openhpsdr-zeus",
+      "categories": [
+        "audio"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "0.3.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/eq-v0.3.0/eq-0.3.0.zip",
+          "sha256": "3a2e158fb250e604334a78425fb1c56c3580eacf90d2559314540f6a41b2c294"
+        },
+        {
+          "version": "0.2.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/eq-v0.2.0/eq-0.2.0.zip",
+          "sha256": "2e7af4a81bc33e39bfadb9768c4805455ecc24a19cab22e02ce4347df39ebf9c"
+        },
+        {
+          "version": "0.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/eq-v0.1.0/eq-0.1.0.zip",
+          "sha256": "55461000343eaa283b963e81cf272f28345eca69766d9f1b90035f90346253fb"
+        }
+      ]
+    },
+    {
+      "id": "com.openhpsdr.zeus.samples.compressor",
+      "channel": "official",
+      "name": "Compressor",
+      "description": "Second block of the Zeus voice audio chain v1 (issue #332). VCA-style compressor with threshold, ratio, attack, release, knee, and makeup gain. Brass-plate UI with a live transfer-function curve and vertical IN/OUT/GR meters. Per-block bypass for instant A/B. Realtime managed C#, no native dependency.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/Kb2uka/openhpsdr-zeus",
+      "categories": [
+        "audio"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "0.1.2",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/compressor-v0.1.2/compressor-0.1.2.zip",
+          "sha256": "7c781605e68c0ca07b2b6b7904ae0058562fb8d55bec6b5097eb32f5aae32118"
+        },
+        {
+          "version": "0.1.1",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/compressor-v0.1.1/compressor-0.1.1.zip",
+          "sha256": "c27864a3fcd1575a56da4d10ae5d75eed1c21c8b100fb61070612fc8417414dc"
+        },
+        {
+          "version": "0.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/compressor-v0.1.0/compressor-0.1.0.zip",
+          "sha256": "29b17f8d58ca2a73dcdf7df4a076bd708e34aa56bef1b275d19bf994c31eac45"
+        }
+      ]
+    },
+    {
+      "id": "com.openhpsdr.zeus.samples.exciter",
+      "channel": "official",
+      "name": "Aural Exciter",
+      "description": "Third block of the Zeus voice audio chain v1 (issue #332). Aphex-style aural exciter — a high-pass tap, drive into a tanh saturator to synthesise even harmonics, then mix back over the dry. Operator controls: cutoff frequency, drive, mix. Adds presence and intelligibility for SSB voice without rebalancing the original signal. Realtime managed C#, no native dependency.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/Kb2uka/openhpsdr-zeus",
+      "categories": [
+        "audio"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "0.2.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/exciter-v0.2.0/exciter-0.2.0.zip",
+          "sha256": "ea4ebd897eecb08d814a1c89b2a62ae394b755d7e566495a79c5509f27997a1e"
+        },
+        {
+          "version": "0.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/exciter-v0.1.0/exciter-0.1.0.zip",
+          "sha256": "75fece3991c6a89d761d69c7a4913f0ff998fab27dd899111686a0aae5c97f42"
+        }
+      ]
+    },
+    {
+      "id": "com.openhpsdr.zeus.samples.bass",
+      "channel": "official",
+      "name": "Bass Enhancer",
+      "description": "Fourth block of the Zeus voice audio chain v1 (issue #332). MaxxBass / Aphex 204 'Big Bottom' Family-B missing-fundamental approach: low-pass isolates the bass band, full-wave rectification generates octave-up harmonics, a high-pass strips DC + the redundant fundamental, mix back over dry. The ear reconstructs the perceived bass without the radio transmitting frequencies the antenna can't efficiently radiate. Realtime managed C#, no native dependency.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/Kb2uka/openhpsdr-zeus",
+      "categories": [
+        "audio"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "0.2.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/bass-v0.2.0/bass-0.2.0.zip",
+          "sha256": "3a4f584fc33aab3f2d61698f1a2239c589883c7c3158765eb272a96395d49ff3"
+        },
+        {
+          "version": "0.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/bass-v0.1.0/bass-0.1.0.zip",
+          "sha256": "37620e71e08ce5a67a3163aebe3640431084443e0e2dcdbc8fa84b23857e38a7"
+        }
+      ]
+    },
+    {
+      "id": "com.openhpsdr.zeus.samples.reverb",
+      "channel": "official",
+      "name": "Reverb",
+      "description": "Fifth and final block of the Zeus voice audio chain v1 (issue #332). Classic four-comb / two-allpass Schroeder reverb with per-comb low-pass damping and operator-tunable size, decay, damp, pre-delay, and mix. Tuned for ham-radio TX sweetening — conservative defaults keep the tail behind the voice. Realtime managed C#, no native dependency.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/Kb2uka/openhpsdr-zeus",
+      "categories": [
+        "audio"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "0.2.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/reverb-v0.2.0/reverb-0.2.0.zip",
+          "sha256": "bc9d643c60968238a1bfb031e2d1b02d9a8c29b278aba18488d6afb4ed07de64"
+        },
+        {
+          "version": "0.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/reverb-v0.1.0/reverb-0.1.0.zip",
+          "sha256": "0c998ec3611de412dccc5c3bc12869faec9ea65516d42a0d8bc7eeff3ad393ce"
+        }
+      ]
+    },
+    {
+      "id": "com.openhpsdr.zeus.samples.noisegate",
+      "channel": "official",
+      "name": "Noise Gate",
+      "description": "Voice noise gate for the Zeus audio chain. Peak-envelope detector with built-in 3 dB open/close hysteresis to prevent chatter, configurable hold time so the gate doesn't clamp shut between syllables, separate attack and release gain-slew time constants, adjustable range (depth of attenuation when closed), and an output gain trim for level-matching downstream blocks. Vertical IN/OUT peak meters and a live threshold rail with OPEN / HOLD / CLOSED state pill. Realtime managed C#, no native dependency.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/Kb2uka/openhpsdr-zeus",
+      "categories": [
+        "audio"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "0.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/noisegate-v0.1.0/noisegate-0.1.0.zip",
+          "sha256": "c4f71aa3fa8851f3707444565332c24f334e821407df86d2d8d19021533f633d"
+        }
+      ]
+    },
+    {
+      "id": "com.kb2uka.voyeur",
+      "channel": "official",
+      "name": "Voyeur Mode · Net Monitor",
+      "description": "Unattended net monitor (zeus-la5). Parks on a frequency and logs each over: captures the audio, transcribes speech to text on-device (selectable Whisper or NVIDIA Parakeet engine, optional GPU), extracts callsigns and enriches them via QRZ, builds a roster of who checked in, and writes a local-LLM 'what was discussed' digest. Watchword alerts e-mail/push you (with a clip, time and frequency) when your call or a keyword is heard. Searchable archive with per-over replay. Speech + AI engines download on first enable (offline thereafter). Extracted from Zeus core.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/OpenHPSDR-Zeus-org/openhpsdr-zeus-plugins/tree/develop/monitors/Voyeur",
+      "categories": [
+        "monitors"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "1.1.1",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/voyeur-v1.1.1/com.kb2uka.voyeur-1.1.1.zip",
+          "sha256": "61271f92d82f039e0d027fcb818f64bdf34f23d2f7986d57b4ccc222ecb54a06"
+        },
+        {
+          "version": "1.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/voyeur-v1.1.0/com.kb2uka.voyeur-1.1.0.zip",
+          "sha256": "638f7d95491a6b63c605471c86fe8943fa7f40bb0e561b3728cc1c75852c533b"
+        },
+        {
+          "version": "1.0.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/voyeur-v1.0.0/com.kb2uka.voyeur-1.0.0.zip",
+          "sha256": "27494f2ca4e258b2e2169365cb1b64ae1cf7c0a86efc0ef10ae139a295f0f429"
+        }
+      ]
+    },
+    {
+      "id": "org.openhpsdr.digital",
+      "channel": "official",
+      "name": "Zeus Digital · FT8/FT4",
+      "description": "Native FT8/FT4 digital-mode engine extracted from Zeus core: multi-pass decode (kgoba/ft8_lib), TX encode + auto-sequencing, PSK Reporter spotting, and WSJT-X-compatible UDP live decode egress. Drives the built-in Zeus Digital pop-out — installing this plugin lights up the FT8/FT4 mode buttons. Never auto-keys: the operator arms TX manually, every session.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://zeussdr.com",
+      "categories": [
+        "modes"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "1.2.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/digital-v1.2.0/org.openhpsdr.digital-1.2.0.zip",
+          "sha256": "5c00735ec04efe8987305efff709b03f7c0718b373c1c5dc41c99d3e53765abd"
+        },
+        {
+          "version": "1.1.1",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/digital-v1.1.1/org.openhpsdr.digital-1.1.1.zip",
+          "sha256": "49043ae4b6da7c552f999275877f57aaf8e9e6174fcdafc6eb57aea122cd0972"
+        },
+        {
+          "version": "1.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/digital-v1.1.0/org.openhpsdr.digital-1.1.0.zip",
+          "sha256": "bcb5f9f73c263e364b9c410d821f2374f2c796871fb422d78010935ec1c9067f"
+        },
+        {
+          "version": "1.0.1",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/digital-v1.0.1/org.openhpsdr.digital-1.0.1.zip",
+          "sha256": "fb1c31351afdcc7f1fa6a39538fa5d0b8f84a9fd7f7175e433a1e7946f75b28b"
+        }
+      ]
+    },
+    {
+      "id": "org.openhpsdr.freedv",
+      "channel": "official",
+      "name": "Zeus FreeDV",
+      "description": "Native FreeDV digital voice modem extracted from Zeus core: codec2 and RADE RX/TX, auto submode detection, squelch/config, and FreeDV Reporter roster plus opt-in reporting. Drives the built-in Zeus FreeDV window; installing this plugin lights up the FreeDV mode entry. Never auto-keys: operator PTT/MOX controls transmit.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://zeussdr.com",
+      "categories": [
+        "modes"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "1.0.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/freedv-v1.0.0/freedv-1.0.0.zip",
+          "sha256": "9dfdaf92ec9bbb8bd87760456d27b49569d0c817bd2f482f83e5e5460852ea2d"
+        }
+      ]
+    },
+    {
+      "id": "org.openhpsdr.kpa500",
+      "channel": "official",
+      "name": "Elecraft KPA500 Amplifier",
+      "description": "Operator console for the Elecraft KPA500 500 W solid-state HF amplifier. Serial control (default 38400 8N1) with forward power, SWR, temperature, PA voltage/current, band, operate/standby, fault display, power ON/OFF, and automatic radio-band tracking.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://www.elecraft.com/collections/kpa500-500w-hf-amplifier",
+      "categories": [
+        "amplifiers"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "0.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/kpa500-v0.1.0/kpa500-0.1.0.zip",
+          "sha256": "10dfa8641f16d0bbfdd5196cac7f61af952d8551fb81fa717bbfdd17513392a2"
+        }
+      ]
+    },
+    {
+      "id": "org.openhpsdr.logbook",
+      "channel": "official",
+      "name": "Zeus Logbook",
+      "description": "Backend for the built-in Zeus QSO logbook panel: stores QSOs in the operator's existing zeus-logbook.db, provides ADIF import/export, and supports QSO editing, tags, and QSL/LoTW tracking. Installing this plugin restores the operator's existing logbook; the panel and external logger settings remain in Zeus core.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://zeussdr.com",
+      "categories": [
+        "logging"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "1.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.4.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/logbook-v1.1.0/logbook-1.1.0.zip",
+          "sha256": "1a7bd5399dd723ad94658a8a1eb6e44d4a2f0e5a4c863783c35b4182362d1dff"
+        },
+        {
+          "version": "1.0.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.3.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/logbook-v1.0.0/logbook-1.0.0.zip",
+          "sha256": "653c5b7d60220104722b4a238492d4caf89d326026d7a0404ee377b959a8fc7f"
+        }
+      ]
+    },
+    {
+      "id": "org.openhpsdr.voyeur",
+      "channel": "official",
+      "name": "Voyeur Mode · Net Monitor",
+      "description": "Unattended net monitor (zeus-la5). Parks on a frequency and logs each over: captures the audio, transcribes speech to text on-device (selectable Whisper or NVIDIA Parakeet engine, optional GPU), extracts callsigns and enriches them via QRZ, builds a roster of who checked in, and writes a local-LLM 'what was discussed' digest. Watchword alerts e-mail/push you (with a clip, time and frequency) when your call or a keyword is heard. Searchable archive with per-over replay. Speech + AI engines download on first enable (offline thereafter). Extracted from Zeus core.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/OpenHPSDR-Zeus-org/openhpsdr-zeus-plugins/tree/main/monitors/Voyeur",
+      "categories": [
+        "monitors"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "1.1.3",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/voyeur-v1.1.3/org.openhpsdr.voyeur-1.1.3.zip",
+          "sha256": "69ee9b672b47c9b8d3f9727b53fa196e47364c0831da2c6b341cac0d61004993"
+        },
+        {
+          "version": "1.1.2",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/voyeur-v1.1.2/org.openhpsdr.voyeur-1.1.2.zip",
+          "sha256": "dd5fca9bfc595112b9610c3eed237d7b835f4cdbd096a50e2975879621e33661"
+        }
+      ]
+    },
+    {
+      "id": "org.openhpsdr.netlogger",
+      "channel": "official",
+      "name": "NetLogger",
+      "description": "Live active-net and check-in browser for the official NetLogger XML API, with optional click-to-tune and explicit QSO logging into the Zeus logbook.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://zeussdr.com",
+      "categories": [
+        "tools"
+      ],
+      "verified": false,
+      "versions": [
+        {
+          "version": "1.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.4.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/netlogger-v1.1.0/org.openhpsdr.netlogger-1.1.0.zip",
+          "sha256": "55f07290e0dec8a91fc87ec112373f267ea6da5456fead5559e5314828a24c42"
+        }
+      ]
+    },
+    {
+      "id": "org.openhpsdr.recorder",
+      "channel": "official",
+      "name": "WAV Recorder · Pilot Glass",
+      "description": "Waveform-first RX/TX recorder with local monitor playback, one-click TX playback, seek/scrub, zoom, selection, clip export, lossless destructive trim and cut, and per-file undo. Over-air playback rides an operator-held key and only drops a key it raised.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://zeussdr.com",
+      "categories": [
+        "tools"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "1.2.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/recorder-v1.2.0/org.openhpsdr.recorder-1.2.0.zip",
+          "sha256": "75f87903b5ee7c59b3a1aea37905ada386cd8d2ac4d5b095d4d3ed5477f55a79"
+        },
+        {
+          "version": "1.1.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/recorder-v1.1.0/org.openhpsdr.recorder-1.1.0.zip",
+          "sha256": "03175bf2534a682db8ca46868395364625e6ccf5550369995ec36b372d38c957"
+        },
+        {
+          "version": "1.0.1",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.2.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/recorder-v1.0.1/org.openhpsdr.recorder-1.0.1.zip",
+          "sha256": "f7f4f7069d3d858975fac4c8daca30c9e8412d20880ec07299c497eda868b37f"
+        }
+      ]
+    },
+    {
+      "id": "org.openhpsdr.vk3amp",
+      "channel": "official",
+      "name": "VK-AMPS Band Director",
+      "description": "Band control for VK-AMPS LDMOS amplifiers. Programs the per-band open-collector map (works with every controller generation, v1 included) with confirm and snapshot/restore, and on TCP/IP controllers adds live telemetry (power, current, voltage, temperature, faults, bypass), bypass and antenna controls, and band-follow over the LAN with no DB9 wiring.",
+      "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://vk-amps.com/",
+      "categories": [
+        "amplifiers"
+      ],
+      "verified": true,
+      "versions": [
+        {
+          "version": "1.0.0",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.0.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://downloads.zeussdr.com/plugins/releases/download/vk3amp-v1.0.0/vk3amp-1.0.0.zip",
+          "sha256": "010072d4e36052ef9d67efe37c667fd76204cd8cf8f4f7ae03cda8c1ede0759c"
+        }
+      ]
+    }
+  ]
+}

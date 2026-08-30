@@ -1,0 +1,77 @@
+name: Validate community catalog and SDK
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: community-validate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  schema:
+    name: Schema and catalog policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate registry schema
+        run: >-
+          npx --yes -p ajv-cli@5.0.0 -p ajv-formats@3.0.1
+          ajv validate --spec=draft2020 --strict=false -c ajv-formats
+          -s schema/registry.schema.json -d registry.json
+      - name: Validate template manifest schema
+        run: >-
+          npx --yes -p ajv-cli@5.0.0 -p ajv-formats@3.0.1
+          ajv validate --spec=draft2020 --strict=false -c ajv-formats
+          -s schema/plugin.schema.json -d templates/hello-world/plugin.json
+      - name: Validate catalog invariants
+        shell: pwsh
+        run: ./tools/validate-registry.ps1
+      - name: Audit public SDK source boundary
+        shell: pwsh
+        run: ./tools/validate-sdk-boundary.ps1
+
+  build:
+    name: SDK and template build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build standalone SDK and template
+        run: dotnet build Zeus.CommunityFeatures.slnx -c Release --nologo
+      - name: Package Hello World
+        shell: pwsh
+        run: ./templates/hello-world/build-package.ps1
+      - name: Validate Hello World package
+        shell: pwsh
+        run: >-
+          ./tools/validate-package.ps1
+          -PackagePath artifacts/hello-world/com.example.zeus.helloworld-1.0.0.zip
+          -ExpectedId com.example.zeus.helloworld
+          -ExpectedVersion 1.0.0
+          -ExpectedSdkAbi 1
+          -ExpectedSdkMinVersion 1.5.0
+
+  packages:
+    name: HTTPS, checksum, and embedded manifests
+    needs: schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and validate every immutable package
+        shell: pwsh
+        run: ./tools/validate-registry.ps1 -DownloadPackages
+
