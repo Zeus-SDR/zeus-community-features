@@ -38,12 +38,18 @@ jobs:
         run: ./tools/validate-sdk-boundary.ps1
 
   build:
-    name: SDK and template build (${{ matrix.os }})
+    name: SDK and template build (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - { name: linux-x64, os: ubuntu-24.04 }
+          - { name: linux-arm64, os: ubuntu-24.04-arm }
+          - { name: windows-x64, os: windows-2025 }
+          - { name: windows-arm64, os: windows-11-arm }
+          - { name: macos-x64, os: macos-15-intel }
+          - { name: macos-arm64, os: macos-14 }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -74,4 +80,3 @@ jobs:
       - name: Download and validate every immutable package
         shell: pwsh
         run: ./tools/validate-registry.ps1 -DownloadPackages
-
