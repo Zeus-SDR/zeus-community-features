@@ -60,6 +60,30 @@ try {
         }
         if (-not $rejected) { throw "Package validator accepted unsafe case: $($case.Name)" }
     }
+
+    $largeManifestPath = Join-Path $tempRoot "large-manifest.zip"
+    $stream = [IO.File]::Open($largeManifestPath, [IO.FileMode]::CreateNew)
+    $archive = [IO.Compression.ZipArchive]::new(
+        $stream, [IO.Compression.ZipArchiveMode]::Create, $false)
+    try {
+        $entry = $archive.CreateEntry("plugin.json", [IO.Compression.CompressionLevel]::NoCompression)
+        $writer = [IO.StreamWriter]::new($entry.Open())
+        try { $writer.Write(" " * 1048577) } finally { $writer.Dispose() }
+    }
+    finally {
+        $archive.Dispose()
+        $stream.Dispose()
+    }
+    $rejected = $false
+    try {
+        & $validator -PackagePath $largeManifestPath `
+            -ExpectedId "com.example.invalid" -ExpectedVersion "1.0.0" | Out-Null
+    }
+    catch {
+        $rejected = $_.Exception.Message -match "plugin.json exceeds 1 MiB"
+        Write-Host "Rejected oversized manifest: $($_.Exception.Message)"
+    }
+    if (-not $rejected) { throw "Package validator accepted plugin.json larger than 1 MiB" }
 }
 finally {
     $resolvedTemp = [IO.Path]::GetFullPath($tempRoot)

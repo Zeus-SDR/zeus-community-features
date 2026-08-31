@@ -39,6 +39,9 @@ jobs:
       - name: Test package path safety
         shell: pwsh
         run: ./tools/test-package-validator.ps1
+      - name: Test community custody policy
+        shell: pwsh
+        run: ./tools/test-community-custody.ps1
 
   build:
     name: SDK and template build (${{ matrix.name }})

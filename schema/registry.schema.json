@@ -124,7 +124,7 @@
           "type": "string",
           "format": "uri",
           "pattern": "^https://",
-          "description": "Immutable HTTPS ZIP URL."
+          "description": "Immutable HTTPS ZIP URL. Repository policy requires community versions to use their exact deterministic Zeus-SDR custody release URL."
         },
         "sha256": {
           "type": "string",

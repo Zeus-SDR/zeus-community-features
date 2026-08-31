@@ -5,6 +5,13 @@ ruleset for `refs/heads/main` with pull requests, one code-owner approval for
 outside contributions, stale-review dismissal, resolved conversations, strict
 required Actions checks, and blocked force-push/deletion.
 
+Require the exact `Trusted community submission policy` check after that
+workflow exists on `main`, in addition to the schema, package, and platform
+build checks. This protected-main check is the merge boundary that prevents an
+outside listing pull request from changing tools or policy. Do not add it as a
+required context before its workflow has landed, because the workflow cannot
+run on the pull request that first introduces it.
+
 Set default workflow-token permissions to read-only. Keep `@Kb2uka` and
 `@iamexemplar` as explicit bypass actors so either maintainer retains
 independent authority for their own work.
@@ -14,3 +21,9 @@ Never attach self-hosted runners to this public repository and never use
 credentials belong in a protected post-merge environment whose job does not
 execute feature code.
 
+Enable **immutable releases** for the repository before taking custody of any
+package. The custody workflow checks this setting before upload and requires
+the published release itself to report as immutable before it succeeds. Do not
+disable the setting while any community package is published. The publishing
+job also verifies GitHub's release attestation and asset digest before it
+reports success.

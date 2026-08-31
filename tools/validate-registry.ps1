@@ -7,6 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
+Import-Module (Join-Path $PSScriptRoot "CommunityCustody.psm1") -Force
 $catalog = Get-Content -Raw -LiteralPath (Resolve-Path $RegistryPath) |
     ConvertFrom-Json -Depth 100
 if ($catalog.schemaVersion -ne 1) { throw "registry schemaVersion must be 1" }
@@ -60,6 +61,12 @@ try {
             if ([string]$version.sha256 -cnotmatch "^[0-9a-f]{64}$") {
                 throw "$key SHA-256 must be lowercase hexadecimal"
             }
+            if ($plugin.channel -eq "community") {
+                Assert-CommunityCustodyUrl `
+                    -FeatureId ([string]$plugin.id) `
+                    -Version ([string]$version.version) `
+                    -DownloadUrl ([string]$version.downloadUrl)
+            }
             if ($version.sdkAbi -lt 1 -or
                 [string]$version.sdkMinVersion -notmatch "^[0-9]+\.[0-9]+\.[0-9]+$") {
                 throw "$key has invalid SDK compatibility"
@@ -73,7 +80,7 @@ try {
             }
             if ($DownloadPackages) {
                 $zip = Join-Path $tempRoot "$($plugin.id)-$($version.version).zip"
-                Invoke-WebRequest -Uri $uri -OutFile $zip -MaximumRedirection 5 -TimeoutSec 120
+                [void](Copy-HttpsFileWithLimit -SourceUrl $uri.AbsoluteUri -DestinationPath $zip)
                 $actual = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
                 if ($actual -cne [string]$version.sha256) { throw "$key SHA-256 mismatch" }
                 $packageValidation = @{

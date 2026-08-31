@@ -9,7 +9,9 @@ issue rather than guessing.
 A feature is developed and released from the author's own source repository.
 This repository hosts the public SDK snapshot, starter template, validation
 tools, and `registry.json`; a normal feature-listing pull request changes only
-`registry.json`.
+`registry.json`. Approved ZIPs are stored separately as immutable Zeus-SDR
+release assets; feature source and binaries are never committed to this Git
+tree.
 
 ## 1. Public SDK and security boundary
 
@@ -51,7 +53,10 @@ compatibility mechanisms, not a security sandbox or warranty.
    and tests for behavior whose regression could affect an operator or radio.
    Update the copied packaging script to include that feature-owned license,
    never the catalog repository's license by accident.
-6. Build and package from a clean checkout on every declared platform.
+6. Keep the complete corresponding source, project files, dependency lockfiles,
+   build/package scripts, license, and notices public. Tag the exact source used
+   for every submitted release so reviewers can reproduce and audit it.
+7. Build and package from a clean checkout on every declared platform.
 
 The ZIP must contain exactly one top-level `plugin.json` and the entrypoint DLL
 named by that manifest. Do not bundle `Zeus.Plugins.Contracts.dll`, framework
@@ -161,6 +166,14 @@ Required UI behavior:
 - use `callBackend` for backend work and clean up timers, subscriptions, and
   listeners when the component unmounts.
 
+Every visual submission must attach screenshots directly to its pull request.
+At minimum show the complete panel in dark and light themes, at normal and
+narrow widths, and at 200% display scaling. Include visible keyboard focus and
+each applicable loading, empty, error, disconnected, unavailable, selected,
+warning, and transmit/danger state. Use additional close-ups where text or
+controls would otherwise be unreadable. Screenshots are required review
+evidence; a statement that the UI was tested is not a substitute.
+
 Example:
 
 ```css
@@ -178,13 +191,16 @@ Example:
 }
 ```
 
-## 5. Publish an immutable release
+## 5. Publish the intake release
 
 Build the package, validate it, and install it locally through
 **Features → Community → Install local feature**. Then publish the exact tested
-ZIP at an immutable HTTPS release URL. Never replace bytes at an existing URL;
-published `(id, version)` pairs are immutable. Release a new SemVer version for
-every change.
+ZIP as a `.zip` asset on a versioned public GitHub Release. This
+contributor-owned copy is the intake artifact that a maintainer will review and
+mirror into Zeus-SDR custody. The intake URL must use the standard
+`https://github.com/<owner>/<repository>/releases/download/<tag>/<asset>.zip`
+form without a query string. Never replace bytes at an existing URL. Release a
+new SemVer version for every change.
 
 Compute the digest over the exact published ZIP:
 
@@ -218,6 +234,20 @@ shown by `git remote -v`; do not guess. A listing pull request must:
   `modes`, `monitors`, `switches`, `tools`, or `tuners` when applicable;
 - update the top-level `generated` value to the current UTC RFC 3339 timestamp.
 
+Community package downloads are kept under Zeus-SDR custody so removing or
+renaming a contributor release cannot break installs for everyone else. Use
+this exact deterministic catalog URL:
+
+```text
+https://github.com/Zeus-SDR/zeus-community-features/releases/download/community-<id>-v<version>/<id>-<version>.zip
+```
+
+For `com.example.callsignlogger` version `1.0.0`, that is
+`https://github.com/Zeus-SDR/zeus-community-features/releases/download/community-com.example.callsignlogger-v1.0.0/com.example.callsignlogger-1.0.0.zip`.
+Put the contributor-owned intake URL in the pull request template, not in the
+final `registry.json`. The custody URL intentionally returns 404 until a
+maintainer completes the custody gate.
+
 New entries use this exact shape:
 
 ```json
@@ -236,7 +266,7 @@ New entries use this exact shape:
     "sdkAbi": 1,
     "sdkMinVersion": "1.5.0",
     "platforms": ["any"],
-    "downloadUrl": "https://github.com/example/callsignlogger/releases/download/v1.0.0/callsignlogger-1.0.0.zip",
+    "downloadUrl": "https://github.com/Zeus-SDR/zeus-community-features/releases/download/community-com.example.callsignlogger-v1.0.0/com.example.callsignlogger-1.0.0.zip",
     "sha256": "64-lowercase-hex-characters"
   }]
 }
@@ -274,14 +304,15 @@ pwsh tools/validate-package.ps1 `
   -ExpectedSdkAbi 1 `
   -ExpectedSdkMinVersion 1.5.0 `
   -ManifestSchemaPath schema/plugin.schema.json
-pwsh tools/validate-registry.ps1 -DownloadPackages
 ```
 
 CI also validates `registry.json` and the template manifest directly against
-their JSON schemas. For community entries, the final command validates the
-downloaded package's embedded manifest against that same schema, verifies its
-exact SHA-256, and compares its identity, SDK, and catalog metadata. Run it only
-after the release URL is public and stable.
+their JSON schemas. Before custody, validate the contributor ZIP directly with
+the first `validate-package.ps1` command. After custody, CI and maintainers also
+run `pwsh tools/validate-registry.ps1 -DownloadPackages`; it downloads the
+Zeus-SDR copy, verifies its exact SHA-256, validates the embedded manifest, and
+compares its identity, SDK, and catalog metadata. Contributors are not expected
+to make that final command pass before a maintainer creates the custody asset.
 
 ## 8. Open the pull request
 
@@ -307,16 +338,21 @@ change after publication, create a new version, URL, and hash; never overwrite
 the existing release.
 
 Complete every applicable item in the pull request template and include the
-feature source URL, immutable ZIP URL, SHA-256, declared platforms, capability
-reasoning, local test results, and UI screenshots when the feature is visual.
+feature source URL, contributor intake ZIP URL, SHA-256, declared platforms,
+capability reasoning, local test results, and the complete screenshot set from
+the uniform UI styling contract when the feature is visual. Attach the images
+to the pull request description or a review comment so reviewers can inspect
+them without building the feature first.
 Copied, translated, vendored, generated, or clean-room-derived code must be
 identified precisely. Resolve review conversations; never weaken or bypass a
 failed check.
 
 Public-fork CI uses disposable GitHub-hosted runners, a read-only token, and no
-secrets. It validates the catalog schema and policy, immutable HTTPS packages,
-hashes, embedded manifests, SDK metadata, package safety, the SDK boundary, and
-builds on Linux, Windows, and macOS x64/arm64.
+secrets. A separate trusted policy check reads only the candidate
+`registry.json` bytes through the GitHub API and runs protected-main policy; it
+never checks out or executes fork code. The checks validate catalog shape and
+policy, custody URLs, hashes, embedded manifests, SDK metadata, package safety,
+the SDK boundary, and builds on Linux, Windows, and macOS x64/arm64.
 
 ## 9. Review, merge, and store publication
 
@@ -324,6 +360,27 @@ Protected `main` requires passing checks, resolved conversations, and approval
 from either Douglas J. Cerrato (KB2UKA / `@Kb2uka`) or Christian Suarez (N9WAR /
 `@iamexemplar`). Either maintainer may validate and merge a contribution alone;
 approval from both is not required.
+
+After content review and before approval, either maintainer runs **Take custody
+of community package** from the Actions page on protected `main`, entering the
+pull request number, feature ID, version, contributor intake URL, and lowercase
+SHA-256. The workflow:
+
+1. checks the PR changes only `registry.json` and reads that file through the
+   GitHub API without checking out the contributor branch;
+2. downloads the intake ZIP as inert data with a compressed-size limit;
+3. verifies SHA-256, archive safety, schema, manifest, SDK, and catalog metadata
+   using tools checked out explicitly from protected `main`;
+4. transfers only those validated bytes to a separate write-scoped job;
+5. uploads, re-downloads, and re-verifies the exact ZIP before publishing its
+   deterministic Zeus-SDR release, then verifies GitHub's immutable-release
+   attestation; and
+6. refuses to delete, overwrite, or replace any existing custody asset.
+
+Published custody releases are immutable. Re-run the PR checks after custody is
+created; the catalog package check must download the Zeus-SDR URL successfully
+before approval. If any package byte must change, stop and publish a new SemVer
+version instead of replacing the intake or custody asset.
 
 Once a maintainer merges the listing into `main`, it becomes part of the public
 catalog. Zeus shows it in **Features → Community** after the catalog cache
