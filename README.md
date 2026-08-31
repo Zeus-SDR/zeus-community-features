@@ -31,19 +31,65 @@ pwsh templates/hello-world/build-package.ps1
 The package is written under `artifacts/com.example.zeus.helloworld/`. During
 development, install it using **Features → Community → Install local feature**.
 
-## Contribute
+## Submit a feature for approval
 
-Build your feature in its own source repository from the public SDK and Hello
-World template, publish an immutable HTTPS release ZIP, then submit a
-catalog-only pull request that adds the release to `registry.json`. The schema,
-UI styling rules, package rules, exact validation commands, and
-human/automation-agent workflow are all defined in
-[CONTRIBUTING.md](CONTRIBUTING.md). Repository-aware automation should also
-follow [AGENTS.md](AGENTS.md).
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before writing or packaging a feature.
+It is the canonical guide for the public SDK boundary, `plugin.json` schema,
+package layout, supported UI slots, Zeus styling tokens, validation commands,
+and review policy. The JSON files under [`schema/`](schema/) are the
+machine-readable source of truth for JSON shape; the scripts under
+[`tools/`](tools/) additionally enforce catalog, archive, and cross-platform
+path policy. Passing schema validation alone is not sufficient.
+Repository-aware development agents must also read and follow
+[AGENTS.md](AGENTS.md).
 
-Either Zeus maintainer may validate and merge a contribution. Once merged into
-protected `main`, the listing appears in **Features → Community** after Zeus's
-catalog cache refreshes. Listing never auto-installs a feature.
+Use this release and submission flow:
+
+1. **Create a separate public source repository for your feature.** Start from
+   [`templates/hello-world/`](templates/hello-world/) and reference only the
+   contracts under [`sdk/Openhpsdr.Zeus.Plugins.Contracts/`](sdk/Openhpsdr.Zeus.Plugins.Contracts/)
+   and, for visual features, the documented `registerPanel` and `callBackend`
+   browser API. Do not copy or depend on private Zeus source, undocumented
+   endpoints, host internals, DSP/radio protocol code, credentials, binaries,
+   or PureSignal.
+2. **Define and build the package.** Follow
+   [`schema/plugin.schema.json`](schema/plugin.schema.json) exactly. Visual
+   features must use the public styling-token subset and scoped-selector rules
+   in [CONTRIBUTING.md](CONTRIBUTING.md#4-uniform-ui-styling-contract).
+3. **Validate and test locally.** Run every command in
+   [Required local checks](CONTRIBUTING.md#7-required-local-checks), then install
+   the resulting ZIP through **Features → Community → Install local feature**.
+   Test every declared operating system and architecture and capture
+   screenshots for visual features.
+4. **Publish the exact tested ZIP** at an immutable public HTTPS release URL.
+   Compute its SHA-256. Never replace the bytes for an existing `(id, version)`;
+   publish a new SemVer version, URL, and checksum instead.
+5. **Fork this catalog repository and branch from its latest `main`.** Edit only
+   [`registry.json`](registry.json): add one new community feature or one new
+   version, set `channel` to `community` and `verified` to `false`, omit
+   `subscription`, preserve all existing entries, and update the top-level
+   `generated` timestamp.
+6. **Open one catalog pull request per feature version against `main`.** Use
+   `feat(registry): add <id> <version>` for a first release or
+   `feat(registry): release <id> <version>` for an update. Complete the pull
+   request template with the source URL, immutable ZIP URL, SHA-256, platforms,
+   capabilities and permissions, local test results, and UI screenshots when
+   applicable. Do not bypass failed checks; push corrections to the same
+   branch and resolve every review conversation.
+
+Feature source and release binaries do not belong in this catalog repository;
+a normal submission changes only `registry.json`. See
+[Open the pull request](CONTRIBUTING.md#8-open-the-pull-request) for exact fork,
+branch, commit, push, and `gh pr create` commands and a complete catalog-entry
+example.
+
+Protected `main` requires passing checks, resolved review conversations, and
+approval from either Douglas J. Cerrato (KB2UKA / `@Kb2uka`) or Christian
+Suarez (N9WAR / `@iamexemplar`). Either maintainer may validate and merge a
+submission independently; approval from both is not required. After merge,
+Zeus shows the listing in **Features → Community** when its catalog cache
+refreshes, normally within about five minutes. Users still choose whether to
+install it; catalog approval never auto-installs a feature or marks it verified.
 
 ## Trust model
 
