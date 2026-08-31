@@ -28,15 +28,22 @@ dotnet build Zeus.CommunityFeatures.slnx -c Release
 pwsh templates/hello-world/build-package.ps1
 ```
 
-The package is written under `artifacts/hello-world/`. During development,
-install it using **Features → Community → Install local feature**.
+The package is written under `artifacts/com.example.zeus.helloworld/`. During
+development, install it using **Features → Community → Install local feature**.
 
 ## Contribute
 
-Fork this repository, copy the Hello World template, choose a globally unique
-reverse-DNS ID, add tests and documentation, publish an immutable HTTPS ZIP,
-and add its lowercase SHA-256 to `registry.json`. Read
-[CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+Build your feature in its own source repository from the public SDK and Hello
+World template, publish an immutable HTTPS release ZIP, then submit a
+catalog-only pull request that adds the release to `registry.json`. The schema,
+UI styling rules, package rules, exact validation commands, and
+human/automation-agent workflow are all defined in
+[CONTRIBUTING.md](CONTRIBUTING.md). Repository-aware automation should also
+follow [AGENTS.md](AGENTS.md).
+
+Either Zeus maintainer may validate and merge a contribution. Once merged into
+protected `main`, the listing appears in **Features → Community** after Zeus's
+catalog cache refreshes. Listing never auto-installs a feature.
 
 ## Trust model
 
@@ -49,8 +56,13 @@ trust.
 PureSignal is not a community SDK surface. Community features must not arm,
 disarm, calibrate, persist, proxy, or otherwise alter PureSignal behavior.
 
+The vendored SDK contains public contracts only. It does not contain or expose
+Zeus product source, host implementations, DSP or radio protocol logic,
+credentials, native libraries, or PureSignal logic. Community features must
+not depend on undocumented product internals.
+
 ## License
 
-Repository code and catalog material are GPL-2.0-or-later. Individual feature
-directories may use another declared compatible license; their manifest,
-`LICENSE`, notices, and catalog entry must agree.
+Repository code and catalog material are GPL-2.0-or-later. Individually listed
+feature packages may use another declared compatible license; their source,
+manifest, packaged `LICENSE`, notices, and catalog entry must agree.

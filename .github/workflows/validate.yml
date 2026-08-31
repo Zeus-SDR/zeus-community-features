@@ -64,7 +64,7 @@ jobs:
         shell: pwsh
         run: >-
           ./tools/validate-package.ps1
-          -PackagePath artifacts/hello-world/com.example.zeus.helloworld-1.0.0.zip
+          -PackagePath artifacts/com.example.zeus.helloworld/com.example.zeus.helloworld-1.0.0.zip
           -ExpectedId com.example.zeus.helloworld
           -ExpectedVersion 1.0.0
           -ExpectedSdkAbi 1

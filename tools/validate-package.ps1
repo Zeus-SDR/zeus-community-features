@@ -6,6 +6,12 @@ param(
     [Parameter(Mandatory)][string] $ExpectedVersion,
     [int] $ExpectedSdkAbi = 0,
     [string] $ExpectedSdkMinVersion = "",
+    [string] $ExpectedName = "",
+    [string] $ExpectedDescription = "",
+    [string] $ExpectedAuthor = "",
+    [string] $ExpectedLicense = "",
+    [string] $ExpectedHomepage = "",
+    [string] $ManifestSchemaPath = "",
     [switch] $AllowBundledContracts
 )
 
@@ -41,8 +47,29 @@ try {
     $manifestEntries = @($archive.Entries | Where-Object FullName -CEQ "plugin.json")
     if ($manifestEntries.Count -ne 1) { throw "Expected one top-level plugin.json" }
     $reader = [IO.StreamReader]::new($manifestEntries[0].Open())
-    try { $manifest = $reader.ReadToEnd() | ConvertFrom-Json -Depth 100 }
+    try { $manifestJson = $reader.ReadToEnd() }
     finally { $reader.Dispose() }
+
+    if ($ManifestSchemaPath) {
+        if (-not ($archive.Entries | Where-Object FullName -CEQ "LICENSE")) {
+            throw "Community packages must contain a top-level LICENSE"
+        }
+        $resolvedSchema = (Resolve-Path -LiteralPath $ManifestSchemaPath).Path
+        $tempManifest = Join-Path ([IO.Path]::GetTempPath()) "zeus-manifest-$([Guid]::NewGuid().ToString('N')).json"
+        try {
+            Set-Content -LiteralPath $tempManifest -Value $manifestJson -Encoding utf8NoBOM -NoNewline
+            & npx --yes -p ajv-cli@5.0.0 -p ajv-formats@3.0.1 ajv validate `
+                --spec=draft2020 --strict=false -c ajv-formats `
+                -s $resolvedSchema -d $tempManifest
+            if ($LASTEXITCODE -ne 0) { throw "Embedded plugin.json does not match the public schema" }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempManifest) {
+                Remove-Item -LiteralPath $tempManifest -Force
+            }
+        }
+    }
+    $manifest = $manifestJson | ConvertFrom-Json -Depth 100
 
     if ($manifest.schemaVersion -ne 1) { throw "Manifest schemaVersion must be 1" }
     if ($manifest.id -cne $ExpectedId) { throw "Manifest id mismatch: $($manifest.id)" }
@@ -52,6 +79,18 @@ try {
     }
     if ($ExpectedSdkMinVersion -and $manifest.sdk.minVersion -cne $ExpectedSdkMinVersion) {
         throw "Manifest sdk.minVersion mismatch"
+    }
+    $metadataChecks = @(
+        @{ Label = "name"; Expected = $ExpectedName; Actual = [string]$manifest.name },
+        @{ Label = "description"; Expected = $ExpectedDescription; Actual = [string]$manifest.description },
+        @{ Label = "author"; Expected = $ExpectedAuthor; Actual = [string]$manifest.author },
+        @{ Label = "license"; Expected = $ExpectedLicense; Actual = [string]$manifest.license },
+        @{ Label = "homepage"; Expected = $ExpectedHomepage; Actual = [string]$manifest.homepage }
+    )
+    foreach ($check in $metadataChecks) {
+        if ($check.Expected -and $check.Actual -cne $check.Expected) {
+            throw "Manifest $($check.Label) mismatch"
+        }
     }
     $entrypoint = [string]$manifest.entrypoint.assembly
     if (-not $entrypoint.EndsWith(".dll", [StringComparison]::OrdinalIgnoreCase) -or
@@ -70,7 +109,9 @@ try {
     }
     foreach ($module in $uiModules) {
         $path = [string]$module
-        if ($path.Contains("..") -or -not ($archive.Entries | Where-Object FullName -CEQ $path)) {
+        if ($path.Contains("..") -or $path.StartsWith("/") -or
+            ($path -cnotmatch "\.m?js$") -or
+            -not ($archive.Entries | Where-Object FullName -CEQ $path)) {
             throw "Unsafe or missing UI module: $path"
         }
     }
