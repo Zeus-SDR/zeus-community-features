@@ -16,6 +16,17 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+function Get-OptionalJsonProperty {
+    param(
+        [Parameter(Mandatory)] $Object,
+        [Parameter(Mandatory)][string] $Name
+    )
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) { return $null }
+    return $property.Value
+}
+
 $resolved = (Resolve-Path -LiteralPath $PackagePath).Path
 $archive = [IO.Compression.ZipFile]::OpenRead($resolved)
 try {
@@ -57,6 +68,9 @@ try {
         }
         $canonicalPath = [string]::Join("/", $canonicalSegments)
         $isDirectory = [string]::IsNullOrEmpty($entry.Name)
+        if ($canonicalPath -ceq "plugin.json" -and $entry.Length -gt 1048576) {
+            throw "plugin.json exceeds 1 MiB"
+        }
         for ($i = 1; $i -lt $canonicalSegments.Count; $i++) {
             $ancestor = [string]::Join("/", $canonicalSegments.GetRange(0, $i))
             $ancestorKind = $false
@@ -165,9 +179,12 @@ try {
     if (-not $AllowBundledContracts -and ($entriesByPath.Keys | Where-Object {
         [IO.Path]::GetFileName($_) -ieq "Zeus.Plugins.Contracts.dll"
     })) { throw "Do not bundle Zeus.Plugins.Contracts.dll" }
+    $manifestUi = Get-OptionalJsonProperty -Object $manifest -Name "ui"
+    $manifestAudio = Get-OptionalJsonProperty -Object $manifest -Name "audio"
     $uiModules = @()
-    if ($null -ne $manifest.ui -and $null -ne $manifest.ui.modules) {
-        $uiModules = @($manifest.ui.modules)
+    if ($null -ne $manifestUi) {
+        $modules = Get-OptionalJsonProperty -Object $manifestUi -Name "modules"
+        if ($null -ne $modules) { $uiModules = @($modules) }
     }
     foreach ($module in $uiModules) {
         $path = [string]$module
@@ -179,31 +196,36 @@ try {
             throw "Unsafe or missing UI module: $path"
         }
     }
-    if ($ManifestSchemaPath -and $null -ne $manifest.audio) {
-        switch ([string]$manifest.audio.format) {
+    if ($ManifestSchemaPath -and $null -ne $manifestAudio) {
+        $vst3PathValue = Get-OptionalJsonProperty -Object $manifestAudio -Name "vst3Path"
+        $auComponentIdValue = Get-OptionalJsonProperty -Object $manifestAudio -Name "auComponentId"
+        $vst3UidValue = Get-OptionalJsonProperty -Object $manifestAudio -Name "vst3Uid"
+        switch ([string]$manifestAudio.format) {
             "managed" {
-                if (-not [string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Path) -or
-                    -not [string]::IsNullOrWhiteSpace([string]$manifest.audio.auComponentId) -or
-                    -not [string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Uid)) {
+                if (-not [string]::IsNullOrWhiteSpace([string]$vst3PathValue) -or
+                    -not [string]::IsNullOrWhiteSpace([string]$auComponentIdValue) -or
+                    -not [string]::IsNullOrWhiteSpace([string]$vst3UidValue)) {
                     throw "Managed audio features cannot declare a native audio identity"
                 }
             }
             "vst3" {
-                if ([string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Path)) {
+                if ([string]::IsNullOrWhiteSpace([string]$vst3PathValue)) {
                     throw "VST3 audio features must declare audio.vst3Path"
                 }
             }
             "au" {
-                if ([string]$manifest.audio.auComponentId -cnotmatch "^[^:]{4}:[^:]{4}:[^:]{4}$") {
+                if ([string]$auComponentIdValue -cnotmatch "^[^:]{4}:[^:]{4}:[^:]{4}$") {
                     throw "Audio Unit features must declare a type:subtype:manufacturer identity"
                 }
             }
             default { throw "audio.format must be managed, vst3, or au" }
         }
     }
-    if ($null -ne $manifest.audio -and
-        -not [string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Path)) {
-        $vst3Path = ([string]$manifest.audio.vst3Path).Replace("\", "/").TrimEnd("/")
+    $audioVst3Path = if ($null -ne $manifestAudio) {
+        Get-OptionalJsonProperty -Object $manifestAudio -Name "vst3Path"
+    } else { $null }
+    if (-not [string]::IsNullOrWhiteSpace([string]$audioVst3Path)) {
+        $vst3Path = ([string]$audioVst3Path).Replace("\", "/").TrimEnd("/")
         $hasBundledVst = @($entriesByPath.Keys) -ccontains $vst3Path -or
             @($entriesByPath.Keys | Where-Object {
                 $_.StartsWith($vst3Path + "/", [StringComparison]::Ordinal)

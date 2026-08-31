@@ -60,28 +60,42 @@ Use this release and submission flow:
    [Required local checks](CONTRIBUTING.md#7-required-local-checks), then install
    the resulting ZIP through **Features → Community → Install local feature**.
    Test every declared operating system and architecture and capture
-   screenshots for visual features.
-4. **Publish the exact tested ZIP** at an immutable public HTTPS release URL.
-   Compute its SHA-256. Never replace the bytes for an existing `(id, version)`;
-   publish a new SemVer version, URL, and checksum instead.
+   screenshots for visual features. Visual submissions must attach their UI
+   screenshots to the pull request so reviewers can evaluate the design
+   immediately.
+4. **Publish the exact tested ZIP as the intake artifact** using a public GitHub
+   Releases HTTPS URL and compute its SHA-256. Use a versioned tag and a `.zip`
+   asset name. Never replace the bytes for an existing `(id, version)`; publish
+   a new SemVer version, URL, and checksum instead.
 5. **Fork this catalog repository and branch from its latest `main`.** Edit only
    [`registry.json`](registry.json): add one new community feature or one new
    version, set `channel` to `community` and `verified` to `false`, omit
    `subscription`, preserve all existing entries, and update the top-level
-   `generated` timestamp.
+   `generated` timestamp. Set `downloadUrl` to the deterministic Zeus-SDR
+   custody URL documented in [CONTRIBUTING.md](CONTRIBUTING.md#6-add-the-catalog-entry),
+   not to the contributor-owned intake URL.
 6. **Open one catalog pull request per feature version against `main`.** Use
    `feat(registry): add <id> <version>` for a first release or
    `feat(registry): release <id> <version>` for an update. Complete the pull
-   request template with the source URL, immutable ZIP URL, SHA-256, platforms,
-   capabilities and permissions, local test results, and UI screenshots when
-   applicable. Do not bypass failed checks; push corrections to the same
-   branch and resolve every review conversation.
+   request template with the source URL, contributor intake ZIP URL, SHA-256,
+   platforms, capabilities and permissions, local test results, and the
+   required UI screenshot set when applicable. Do not bypass failed checks;
+   push corrections to the same branch and resolve every review conversation.
 
-Feature source and release binaries do not belong in this catalog repository;
-a normal submission changes only `registry.json`. See
+Feature source and release binaries are not committed to this repository's Git
+tree; a normal submission changes only `registry.json`. See
 [Open the pull request](CONTRIBUTING.md#8-open-the-pull-request) for exact fork,
 branch, commit, push, and `gh pr create` commands and a complete catalog-entry
 example.
+
+After the source, package, permissions, styling, licensing, and test evidence
+pass review, either maintainer runs the protected-main custody workflow. It
+downloads the contributor's intake ZIP once, enforces the declared size and
+SHA-256, validates it without executing feature code, and publishes those exact
+bytes as an immutable Zeus-SDR-owned release asset. The catalog's package check
+will remain blocked until that custody asset exists. Approval and merge happen
+only after the custody URL downloads successfully and every required check is
+green. Removing the contributor's release later cannot break the store copy.
 
 Protected `main` requires passing checks, resolved review conversations, and
 approval from either Douglas J. Cerrato (KB2UKA / `@Kb2uka`) or Christian

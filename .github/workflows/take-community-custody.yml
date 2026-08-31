@@ -1,0 +1,170 @@
+name: Take custody of community package
+
+on:
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: Open catalog pull request number
+        required: true
+        type: string
+      feature_id:
+        description: Community feature ID
+        required: true
+        type: string
+      version:
+        description: Exact SemVer release version
+        required: true
+        type: string
+      source_url:
+        description: Contributor's immutable HTTPS ZIP URL
+        required: true
+        type: string
+      sha256:
+        description: Expected 64-character lowercase SHA-256
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: custody-${{ inputs.feature_id }}-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate inert package on protected main
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.actor_id == '95453216' || github.actor_id == '133596045')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CUSTODY_PR: ${{ inputs.pull_request_number }}
+      CUSTODY_FEATURE_ID: ${{ inputs.feature_id }}
+      CUSTODY_VERSION: ${{ inputs.version }}
+      CUSTODY_SOURCE_URL: ${{ inputs.source_url }}
+      CUSTODY_SHA256: ${{ inputs.sha256 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out protected main tooling only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: Zeus-SDR/zeus-community-features
+          ref: refs/heads/main
+          persist-credentials: false
+      - name: Read candidate registry without checking out fork code
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:CUSTODY_PR -notmatch '^[1-9][0-9]*$') {
+            throw 'pull_request_number must be a positive integer'
+          }
+          $pull = gh api "repos/$env:GITHUB_REPOSITORY/pulls/$env:CUSTODY_PR" |
+            ConvertFrom-Json -Depth 50
+          if ($LASTEXITCODE -ne 0 -or $pull.state -cne 'open' -or
+              $pull.base.ref -cne 'main') {
+            throw 'Custody requires an open pull request against main'
+          }
+          if ($pull.changed_files -ne 1) {
+            throw 'A catalog submission must change only registry.json'
+          }
+          $files = @(gh api "repos/$env:GITHUB_REPOSITORY/pulls/$env:CUSTODY_PR/files?per_page=100" |
+            ConvertFrom-Json -Depth 50)
+          if ($LASTEXITCODE -ne 0 -or $files.Count -ne 1 -or
+              $files[0].filename -cne 'registry.json') {
+            throw 'A catalog submission must change only registry.json'
+          }
+          $headRepository = [string]$pull.head.repo.full_name
+          $headSha = [string]$pull.head.sha
+          if ($headRepository -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$' -or
+              $headSha -cnotmatch '^[0-9a-f]{40}$') {
+            throw 'Pull request head identity is invalid'
+          }
+          $content = gh api "repos/$headRepository/contents/registry.json?ref=$headSha" |
+            ConvertFrom-Json -Depth 20
+          if ($LASTEXITCODE -ne 0 -or $content.type -cne 'file' -or
+              $content.encoding -cne 'base64' -or $content.size -gt 10485760) {
+            throw 'Could not read a bounded candidate registry.json'
+          }
+          $bytes = [Convert]::FromBase64String(([string]$content.content -replace '\s', ''))
+          [IO.File]::WriteAllBytes(
+            (Join-Path $env:RUNNER_TEMP 'candidate-registry.json'),
+            $bytes
+          )
+      - name: Validate candidate against protected-main schema
+        run: >-
+          npx --yes -p ajv-cli@5.0.0 -p ajv-formats@3.0.1
+          ajv validate --spec=draft2020 --strict=false -c ajv-formats
+          -s schema/registry.schema.json
+          -d ${{ runner.temp }}/candidate-registry.json
+      - name: Bind the exact catalog delta and validate inert package data
+        shell: pwsh
+        run: |
+          ./tools/validate-community-submission.ps1 `
+            -BaseRegistryPath registry.json `
+            -CandidateRegistryPath (Join-Path $env:RUNNER_TEMP 'candidate-registry.json') `
+            -ExpectedFeatureId $env:CUSTODY_FEATURE_ID `
+            -ExpectedVersion $env:CUSTODY_VERSION
+          ./tools/prepare-community-custody.ps1 `
+            -RegistryPath (Join-Path $env:RUNNER_TEMP 'candidate-registry.json') `
+            -FeatureId $env:CUSTODY_FEATURE_ID `
+            -Version $env:CUSTODY_VERSION `
+            -ExpectedSha256 $env:CUSTODY_SHA256 `
+            -SourceUrl $env:CUSTODY_SOURCE_URL `
+            -OutputDirectory (Join-Path $env:RUNNER_TEMP 'custody-package')
+      - name: Transfer the exact validated bytes
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: custody-package
+          path: ${{ runner.temp }}/custody-package/
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+  publish:
+    name: Publish immutable Zeus-SDR custody release
+    needs: validate
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.actor_id == '95453216' || github.actor_id == '133596045')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CUSTODY_FEATURE_ID: ${{ inputs.feature_id }}
+      CUSTODY_VERSION: ${{ inputs.version }}
+      CUSTODY_SHA256: ${{ inputs.sha256 }}
+    steps:
+      - name: Check out protected main publishing tool only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: Zeus-SDR/zeus-community-features
+          ref: refs/heads/main
+          persist-credentials: false
+      - name: Receive validated bytes
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: custody-package
+          path: ${{ runner.temp }}/custody-package
+      - name: Verify again and publish without replacement
+        shell: pwsh
+        run: |
+          $result = ./tools/publish-community-custody.ps1 `
+            -PackageDirectory (Join-Path $env:RUNNER_TEMP 'custody-package') `
+            -TargetCommit $env:GITHUB_SHA `
+            -ExpectedFeatureId $env:CUSTODY_FEATURE_ID `
+            -ExpectedVersion $env:CUSTODY_VERSION `
+            -ExpectedSha256 $env:CUSTODY_SHA256
+          @(
+            '## Community package custody complete',
+            '',
+            "- Feature: ``$($result.featureId)``",
+            "- Version: ``$($result.version)``",
+            "- SHA-256: ``$($result.sha256)``",
+            "- Custody URL: $($result.custodyUrl)",
+            '- Immutable release: enabled'
+          ) | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY

@@ -1,0 +1,76 @@
+name: Trusted community submission policy
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  policy:
+    name: Trusted community submission policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CANDIDATE_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+      CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+      CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
+      PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+      PULL_REQUEST_AUTHOR_ID: ${{ github.event.pull_request.user.id }}
+    steps:
+      - name: Check out protected main policy only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: Zeus-SDR/zeus-community-features
+          ref: refs/heads/main
+          persist-credentials: false
+      - name: Read candidate registry without checking out fork code
+        id: candidate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:CANDIDATE_REPOSITORY -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$' -or
+              $env:CANDIDATE_SHA -cnotmatch '^[0-9a-f]{40}$') {
+            throw 'Pull request head identity is invalid'
+          }
+          $files = @(gh api "repos/$env:GITHUB_REPOSITORY/pulls/$env:PULL_REQUEST_NUMBER/files?per_page=100" |
+            ConvertFrom-Json -Depth 20)
+          if ($LASTEXITCODE -ne 0) { throw 'Could not inspect pull request files' }
+          if ($env:CHANGED_FILES -cne '1' -or $files.Count -ne 1 -or
+              $files[0].filename -cne 'registry.json') {
+            if ($env:PULL_REQUEST_AUTHOR_ID -in @('95453216', '133596045')) {
+              'catalog=false' | Add-Content -LiteralPath $env:GITHUB_OUTPUT
+              Write-Host 'Trusted maintainer change is not a catalog-only submission.'
+              exit 0
+            }
+            throw 'Outside contributors may change only registry.json'
+          }
+          $content = gh api "repos/$env:CANDIDATE_REPOSITORY/contents/registry.json?ref=$env:CANDIDATE_SHA" |
+            ConvertFrom-Json -Depth 20
+          if ($LASTEXITCODE -ne 0 -or $content.type -cne 'file' -or
+              $content.encoding -cne 'base64' -or $content.size -gt 10485760) {
+            throw 'Could not read a bounded candidate registry.json'
+          }
+          $bytes = [Convert]::FromBase64String(([string]$content.content -replace '\s', ''))
+          [IO.File]::WriteAllBytes(
+            (Join-Path $env:RUNNER_TEMP 'candidate-registry.json'),
+            $bytes
+          )
+          'catalog=true' | Add-Content -LiteralPath $env:GITHUB_OUTPUT
+      - name: Validate candidate schema with protected-main schema
+        if: steps.candidate.outputs.catalog == 'true'
+        run: >-
+          npx --yes -p ajv-cli@5.0.0 -p ajv-formats@3.0.1
+          ajv validate --spec=draft2020 --strict=false -c ajv-formats
+          -s schema/registry.schema.json -d ${{ runner.temp }}/candidate-registry.json
+      - name: Enforce protected-main listing and custody policy
+        if: steps.candidate.outputs.catalog == 'true'
+        shell: pwsh
+        run: >-
+          ./tools/validate-community-submission.ps1
+          -BaseRegistryPath registry.json
+          -CandidateRegistryPath (Join-Path $env:RUNNER_TEMP 'candidate-registry.json')
