@@ -143,11 +143,12 @@ public sealed record PanelContribution
 public sealed record AudioBlock
 {
     /// <summary>
-    /// Native host backend for this audio block. <c>"vst3"</c> (the default)
+    /// Audio backend for this block. <c>"managed"</c> documents a plugin that
+    /// implements <c>IAudioPlugin</c> directly. <c>"vst3"</c> (the default)
     /// loads via the in-process VST3 bridge from <see cref="Vst3Path"/>;
     /// <c>"au"</c> loads a macOS Audio Unit via the in-process AU bridge
     /// using <see cref="AuComponentId"/>. Additive and back-compatible:
-    /// existing manifests omit this field and resolve to <c>"vst3"</c>, so
+    /// Existing manifests omit this field and resolve to <c>"vst3"</c>, so
     /// no on-disk manifest changes shape.
     /// </summary>
     [JsonPropertyName("format")]

@@ -1,8 +1,10 @@
 # Contributing a Zeus community feature
 
 This is the canonical guide for feature authors, reviewers, and automation
-agents. The JSON schemas under `schema/` are the machine-readable contract. If
-prose and a schema disagree, stop and open an issue rather than guessing.
+agents. The JSON schemas under `schema/` are the machine-readable JSON-shape
+contract; the scripts under `tools/` enforce catalog, archive, and cross-platform
+path policy. If the guide, a schema, and a validator disagree, stop and open an
+issue rather than guessing.
 
 A feature is developed and released from the author's own source repository.
 This repository hosts the public SDK snapshot, starter template, validation
@@ -62,8 +64,8 @@ license, and notices. List each additional managed DLL by plain filename with
 `-AdditionalAsset`. Both parameters may be repeated/array-valued. For example:
 
 ```powershell
-pwsh templates/hello-world/build-package.ps1 `
-  -ManagedDependency Example.Protocol.dll `
+& ./templates/hello-world/build-package.ps1 `
+  -ManagedDependency @("Example.Protocol.dll") `
   -AdditionalAsset @("ui/chunk.js", "assets")
 ```
 
@@ -90,6 +92,9 @@ package paths: never absolute, never `..`, and never URLs.
 When `audio` is present, specify `format`, `slot`, `channels`, and `sampleRate`
 explicitly. The schema lists the supported formats, processing slots, channel
 counts, sample rates, and format-specific identity fields; do not invent values.
+Use `format: "managed"` for a direct `IAudioPlugin`, `format: "vst3"` with a
+non-null bundled `vst3Path`, or `format: "au"` with a non-null
+`auComponentId`.
 
 Declare only capabilities and permissions the feature actually uses. ABI 1
 automatically grants declared capabilities; there is no permission prompt.

@@ -30,6 +30,8 @@ function New-TestArchive {
 
 New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
 try {
+    $nfcPath = "ui/caf$([char]0x00E9).js"
+    $nfdPath = "ui/cafe$([char]0x0301).js"
     $cases = @(
         @{ Name = "dot-segment"; Entries = @("plugin.json", "./plugin.json") },
         @{ Name = "empty-segment"; Entries = @("plugin.json", "ui//module.js") },
@@ -37,6 +39,11 @@ try {
         @{ Name = "wrong-manifest-case"; Entries = @("PLUGIN.json") },
         @{ Name = "backslash"; Entries = @("plugin.json", "ui\module.js") },
         @{ Name = "trailing-dot"; Entries = @("plugin.json", "ui./module.js") },
+        @{ Name = "trailing-space"; Entries = @("plugin.json", "ui/module.js ") },
+        @{ Name = "reserved-name"; Entries = @("plugin.json", "ui/CON.txt") },
+        @{ Name = "unicode-normalization"; Entries = @("plugin.json", $nfcPath, $nfdPath) },
+        @{ Name = "file-directory-prefix"; Entries = @("plugin.json", "A", "a/x") },
+        @{ Name = "directory-file-prefix"; Entries = @("plugin.json", "a/x", "A") },
         @{ Name = "colon"; Entries = @("plugin.json", "ui/module.js:stream") }
     )
     foreach ($case in $cases) {

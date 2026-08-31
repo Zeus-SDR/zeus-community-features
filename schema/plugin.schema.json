@@ -82,8 +82,8 @@
     "packagePath": {
       "type": "string",
       "minLength": 1,
-      "pattern": "^(?![\\\\/])(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+$",
-      "description": "Relative path inside the ZIP; absolute paths and parent traversal are forbidden."
+      "pattern": "^(?!/)(?!.*[/]$)(?!.*\\\\)(?!.*:)(?!.*//)(?!\\.\\.?/)(?!.*[/]\\.\\.?(?:[/]|$))(?!.*[. ](?:[/]|$)).+$",
+      "description": "Forward-slash relative path inside the ZIP. Empty/dot segments, parent traversal, colons, trailing dot/space aliases, and backslashes are forbidden; package validation applies the remaining cross-platform collision rules."
     },
     "sdkRequirement": {
       "type": "object",
@@ -101,7 +101,7 @@
       "properties": {
         "assembly": {
           "type": "string",
-          "pattern": "^[^/\\\\]+\\.dll$",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.dll$",
           "description": "Plain top-level DLL filename."
         },
         "type": { "type": ["string", "null"], "minLength": 1 }
@@ -181,8 +181,36 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["format", "slot", "channels", "sampleRate"],
+      "allOf": [
+        {
+          "if": { "properties": { "format": { "const": "vst3" } } },
+          "then": {
+            "required": ["vst3Path"],
+            "properties": { "vst3Path": { "$ref": "#/$defs/packagePath" } }
+          }
+        },
+        {
+          "if": { "properties": { "format": { "const": "au" } } },
+          "then": {
+            "required": ["auComponentId"],
+            "properties": {
+              "auComponentId": { "type": "string", "pattern": "^[^:]{4}:[^:]{4}:[^:]{4}$" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "format": { "const": "managed" } } },
+          "then": {
+            "properties": {
+              "auComponentId": { "type": "null" },
+              "vst3Path": { "type": "null" },
+              "vst3Uid": { "type": "null" }
+            }
+          }
+        }
+      ],
       "properties": {
-        "format": { "type": "string", "enum": ["vst3", "au"] },
+        "format": { "type": "string", "enum": ["managed", "vst3", "au"] },
         "auComponentId": {
           "type": ["string", "null"],
           "pattern": "^[^:]{4}:[^:]{4}:[^:]{4}$"

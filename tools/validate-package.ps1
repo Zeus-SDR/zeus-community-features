@@ -22,6 +22,8 @@ try {
     if ($archive.Entries.Count -gt 4096) { throw "Too many ZIP entries" }
     $entriesByPath = [Collections.Generic.Dictionary[string, IO.Compression.ZipArchiveEntry]]::new(
         [StringComparer]::OrdinalIgnoreCase)
+    $pathKinds = [Collections.Generic.Dictionary[string, bool]]::new(
+        [StringComparer]::OrdinalIgnoreCase)
     [long] $expanded = 0
     foreach ($entry in $archive.Entries) {
         if ($entry.FullName.Contains("\")) {
@@ -44,7 +46,7 @@ try {
                 throw "Unsafe or non-portable ZIP path: $($entry.FullName)"
             }
             $normalized = $segment.Normalize([Text.NormalizationForm]::FormC)
-            if ($segment -cne $normalized) {
+            if (-not [string]::Equals($segment, $normalized, [StringComparison]::Ordinal)) {
                 throw "ZIP paths must use Unicode normalization form C: $($entry.FullName)"
             }
             $reservedStem = $segment.Split(".")[0]
@@ -54,6 +56,33 @@ try {
             $canonicalSegments.Add($normalized)
         }
         $canonicalPath = [string]::Join("/", $canonicalSegments)
+        $isDirectory = [string]::IsNullOrEmpty($entry.Name)
+        for ($i = 1; $i -lt $canonicalSegments.Count; $i++) {
+            $ancestor = [string]::Join("/", $canonicalSegments.GetRange(0, $i))
+            $ancestorKind = $false
+            if ($pathKinds.TryGetValue($ancestor, [ref]$ancestorKind)) {
+                if (-not $ancestorKind) {
+                    throw "ZIP file conflicts with descendant path: $ancestor / $canonicalPath"
+                }
+            }
+            else {
+                $pathKinds.Add($ancestor, $true)
+            }
+        }
+        $existingKind = $false
+        if ($pathKinds.TryGetValue($canonicalPath, [ref]$existingKind)) {
+            if (-not ($existingKind -and $isDirectory)) {
+                throw "ZIP file/directory path collision: $canonicalPath"
+            }
+        }
+        else {
+            if (-not $isDirectory -and ($pathKinds.Keys | Where-Object {
+                $_.StartsWith($canonicalPath + "/", [StringComparison]::OrdinalIgnoreCase)
+            })) {
+                throw "ZIP file conflicts with an existing directory path: $canonicalPath"
+            }
+            $pathKinds.Add($canonicalPath, $isDirectory)
+        }
         if (-not $entriesByPath.TryAdd($canonicalPath, $entry)) {
             throw "Duplicate or platform-colliding ZIP path: $canonicalPath"
         }
@@ -148,6 +177,28 @@ try {
             -not $entriesByPath.TryGetValue($path, [ref]$moduleEntry) -or
             $moduleEntry.FullName -cne $path) {
             throw "Unsafe or missing UI module: $path"
+        }
+    }
+    if ($ManifestSchemaPath -and $null -ne $manifest.audio) {
+        switch ([string]$manifest.audio.format) {
+            "managed" {
+                if (-not [string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Path) -or
+                    -not [string]::IsNullOrWhiteSpace([string]$manifest.audio.auComponentId) -or
+                    -not [string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Uid)) {
+                    throw "Managed audio features cannot declare a native audio identity"
+                }
+            }
+            "vst3" {
+                if ([string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Path)) {
+                    throw "VST3 audio features must declare audio.vst3Path"
+                }
+            }
+            "au" {
+                if ([string]$manifest.audio.auComponentId -cnotmatch "^[^:]{4}:[^:]{4}:[^:]{4}$") {
+                    throw "Audio Unit features must declare a type:subtype:manufacturer identity"
+                }
+            }
+            default { throw "audio.format must be managed, vst3, or au" }
         }
     }
     if ($null -ne $manifest.audio -and
