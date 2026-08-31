@@ -96,7 +96,8 @@ if ($null -ne $manifest.audio) {
     switch ($audioFormat) {
         "managed" {
             if (-not [string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Path) -or
-                -not [string]::IsNullOrWhiteSpace([string]$manifest.audio.auComponentId)) {
+                -not [string]::IsNullOrWhiteSpace([string]$manifest.audio.auComponentId) -or
+                -not [string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Uid)) {
                 throw "Managed audio features cannot declare a native audio identity"
             }
         }
@@ -153,20 +154,47 @@ if (Test-Path -LiteralPath $stagingRoot) {
     Remove-Item -LiteralPath $stagingRoot -Recurse -Force
 }
 New-Item -ItemType Directory -Path $stagingRoot -Force | Out-Null
-$stagedPaths = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$stagedPaths = [Collections.Generic.Dictionary[string, bool]]::new([StringComparer]::OrdinalIgnoreCase)
+$assetRoots = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 
 function Reserve-StagedPath {
-    param([Parameter(Mandatory)][string] $RelativePath)
+    param(
+        [Parameter(Mandatory)][string] $RelativePath,
+        [bool] $IsDirectory = $false
+    )
     $packagePath = Get-SafePackagePath -Path $RelativePath
-    if (-not $stagedPaths.Add($packagePath)) {
+    $segments = @($packagePath.Split("/"))
+    for ($i = 1; $i -lt $segments.Count; $i++) {
+        $ancestor = [string]::Join("/", $segments[0..($i - 1)])
+        $ancestorKind = $false
+        if ($stagedPaths.TryGetValue($ancestor, [ref]$ancestorKind)) {
+            if (-not $ancestorKind) {
+                throw "Package file conflicts with descendant path: $ancestor / $packagePath"
+            }
+        }
+        else {
+            $stagedPaths.Add($ancestor, $true)
+        }
+    }
+    $existingKind = $false
+    if ($stagedPaths.TryGetValue($packagePath, [ref]$existingKind)) {
         throw "Package path collides with another staged path: $packagePath"
     }
+    if (-not $IsDirectory -and ($stagedPaths.Keys | Where-Object {
+        $_.StartsWith($packagePath + "/", [StringComparison]::OrdinalIgnoreCase)
+    })) {
+        throw "Package file conflicts with an existing directory path: $packagePath"
+    }
+    $stagedPaths.Add($packagePath, $IsDirectory)
     return $packagePath
 }
 
 function Copy-PackageAsset {
     param([Parameter(Mandatory)][string] $RelativePath)
     $packagePath = Get-SafePackagePath -Path $RelativePath
+    if (-not $assetRoots.Add($packagePath)) {
+        throw "Package asset was selected more than once: $packagePath"
+    }
     $sourcePath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot $packagePath))
     $destinationPath = [IO.Path]::GetFullPath((Join-Path $stagingRoot $packagePath))
     Assert-StrictChildPath -Parent $PSScriptRoot -Candidate $sourcePath -Label "Package asset source"
@@ -180,9 +208,12 @@ function Copy-PackageAsset {
     if ($sourceItems | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint }) {
         throw "Linked package assets are forbidden: $packagePath"
     }
+    $sourceItems = @($sourceItems | Sort-Object `
+        @{ Expression = { ([IO.Path]::GetRelativePath($PSScriptRoot, $_.FullName).Replace("\", "/").Split("/")).Count } }, `
+        @{ Expression = { if ($_.PSIsContainer) { 0 } else { 1 } } })
     foreach ($sourceItem in $sourceItems) {
         $sourceRelative = [IO.Path]::GetRelativePath($PSScriptRoot, $sourceItem.FullName).Replace("\", "/")
-        [void](Reserve-StagedPath -RelativePath $sourceRelative)
+        [void](Reserve-StagedPath -RelativePath $sourceRelative -IsDirectory $sourceItem.PSIsContainer)
     }
     New-Item -ItemType Directory -Path (Split-Path -Parent $destinationPath) -Force | Out-Null
     Copy-Item -LiteralPath $sourcePath -Destination $destinationPath -Recurse -Force

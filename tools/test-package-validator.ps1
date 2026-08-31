@@ -42,6 +42,8 @@ try {
         @{ Name = "trailing-space"; Entries = @("plugin.json", "ui/module.js ") },
         @{ Name = "reserved-name"; Entries = @("plugin.json", "ui/CON.txt") },
         @{ Name = "unicode-normalization"; Entries = @("plugin.json", $nfcPath, $nfdPath) },
+        @{ Name = "file-directory-prefix"; Entries = @("plugin.json", "A", "a/x") },
+        @{ Name = "directory-file-prefix"; Entries = @("plugin.json", "a/x", "A") },
         @{ Name = "colon"; Entries = @("plugin.json", "ui/module.js:stream") }
     )
     foreach ($case in $cases) {
