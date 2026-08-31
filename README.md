@@ -1,7 +1,7 @@
 # Zeus Community Features
 
 This public repository is the source and catalog for community-built features
-that run with [Zeus SDR](https://github.com/Zeus-SDR/zeussdr). A feature
+that run with [Zeus SDR]. A feature
 accepted into protected `main` appears in the **Community** tab after Zeus
 refreshes the catalog.
 
