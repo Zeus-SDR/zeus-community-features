@@ -92,6 +92,9 @@ package paths: never absolute, never `..`, and never URLs.
 When `audio` is present, specify `format`, `slot`, `channels`, and `sampleRate`
 explicitly. The schema lists the supported formats, processing slots, channel
 counts, sample rates, and format-specific identity fields; do not invent values.
+Use `format: "managed"` for a direct `IAudioPlugin`, `format: "vst3"` with a
+non-null bundled `vst3Path`, or `format: "au"` with a non-null
+`auComponentId`.
 
 Declare only capabilities and permissions the feature actually uses. ABI 1
 automatically grants declared capabilities; there is no permission prompt.

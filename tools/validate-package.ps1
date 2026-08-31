@@ -44,7 +44,7 @@ try {
                 throw "Unsafe or non-portable ZIP path: $($entry.FullName)"
             }
             $normalized = $segment.Normalize([Text.NormalizationForm]::FormC)
-            if ($segment -cne $normalized) {
+            if (-not [string]::Equals($segment, $normalized, [StringComparison]::Ordinal)) {
                 throw "ZIP paths must use Unicode normalization form C: $($entry.FullName)"
             }
             $reservedStem = $segment.Split(".")[0]
@@ -148,6 +148,27 @@ try {
             -not $entriesByPath.TryGetValue($path, [ref]$moduleEntry) -or
             $moduleEntry.FullName -cne $path) {
             throw "Unsafe or missing UI module: $path"
+        }
+    }
+    if ($ManifestSchemaPath -and $null -ne $manifest.audio) {
+        switch ([string]$manifest.audio.format) {
+            "managed" {
+                if (-not [string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Path) -or
+                    -not [string]::IsNullOrWhiteSpace([string]$manifest.audio.auComponentId)) {
+                    throw "Managed audio features cannot declare a native audio identity"
+                }
+            }
+            "vst3" {
+                if ([string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Path)) {
+                    throw "VST3 audio features must declare audio.vst3Path"
+                }
+            }
+            "au" {
+                if ([string]$manifest.audio.auComponentId -cnotmatch "^[^:]{4}:[^:]{4}:[^:]{4}$") {
+                    throw "Audio Unit features must declare a type:subtype:manufacturer identity"
+                }
+            }
+            default { throw "audio.format must be managed, vst3, or au" }
         }
     }
     if ($null -ne $manifest.audio -and
