@@ -122,19 +122,19 @@ public sealed record PanelContribution
     public string Icon { get; init; } = "Box";
 
     /// <summary>
-    /// Named slot in the Zeus shell the panel renders into. Known slots:
-    /// <c>workspace.amplifier</c>, <c>settings.plugins</c>,
-    /// <c>topbar.right</c>. Unknown slots are ignored.
+    /// Named slot in the Zeus shell the panel renders into. Supported
+    /// conventions are <c>workspace.&lt;feature&gt;</c>,
+    /// <c>tx-audio-tools.chain</c>, and <c>rx-audio-tools.chain</c>.
     /// </summary>
     [JsonPropertyName("slot")]
     public required string Slot { get; init; }
 
     /// <summary>
-    /// Add Panel modal category the panel appears under. Known values
-    /// mirror the built-in PanelCategory enum in zeus-web/panels.ts
-    /// (spectrum / vfo / meters / dsp / log / tools / amplifiers /
-    /// controls / switches / plugins). Defaults to "plugins" when
-    /// omitted so legacy manifests keep working.
+    /// Add Panel category. Public values are <c>spectrum</c>, <c>vfo</c>,
+    /// <c>meters</c>, <c>dsp</c>, <c>log</c>, <c>tools</c>,
+    /// <c>amplifiers</c>, <c>controls</c>, <c>switches</c>, and
+    /// <c>plugins</c>. Defaults to <c>plugins</c> when omitted so legacy
+    /// manifests keep working.
     /// </summary>
     [JsonPropertyName("category")]
     public string Category { get; init; } = "plugins";
@@ -193,4 +193,3 @@ public sealed record AudioBlock
     [JsonPropertyName("sampleRate")]
     public int SampleRate { get; init; } = 48000;
 }
-

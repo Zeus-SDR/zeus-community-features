@@ -14,6 +14,9 @@ $generated = [DateTimeOffset]::MinValue
 if (-not [DateTimeOffset]::TryParse([string]$catalog.generated, [ref]$generated)) {
     throw "registry generated must be an RFC 3339 date-time"
 }
+$idPattern = "^[a-z][a-z0-9]*(\.[a-z0-9]+)+$"
+$platforms = @("any", "linux-x64", "linux-arm64", "win-x64", "win-arm64", "osx-x64", "osx-arm64")
+$manifestSchema = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../schema/plugin.schema.json"))
 
 $ids = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 $versions = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
@@ -24,12 +27,25 @@ try {
         New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
     }
     foreach ($plugin in @($catalog.plugins)) {
-        if ([string]$plugin.id -notmatch "^[a-z][a-z0-9.]*[a-z0-9]$") {
+        if ([string]$plugin.id -cnotmatch $idPattern) {
             throw "Invalid id: $($plugin.id)"
         }
         if (-not $ids.Add([string]$plugin.id)) { throw "Duplicate id: $($plugin.id)" }
         if ($plugin.channel -notin @("official", "community")) {
             throw "$($plugin.id) has invalid channel"
+        }
+        if ($plugin.channel -eq "community") {
+            if ($plugin.verified -ne $false) {
+                throw "$($plugin.id) community submissions must set verified=false"
+            }
+            if ($plugin.PSObject.Properties.Name -contains "subscription") {
+                throw "$($plugin.id) community submissions cannot declare subscription"
+            }
+        }
+        foreach ($category in @($plugin.categories)) {
+            if ([string]$category -cnotmatch "^[a-z][a-z0-9-]*$") {
+                throw "$($plugin.id) has invalid category: $category"
+            }
         }
         if (@($plugin.versions).Count -eq 0) { throw "$($plugin.id) has no versions" }
         foreach ($version in @($plugin.versions)) {
@@ -49,17 +65,34 @@ try {
                 throw "$key has invalid SDK compatibility"
             }
             if (@($version.platforms).Count -eq 0) { throw "$key has no platforms" }
+            foreach ($platform in @($version.platforms)) {
+                if ($platform -notin $platforms) { throw "$key has invalid platform: $platform" }
+            }
+            if (@($version.platforms) -contains "any" -and @($version.platforms).Count -ne 1) {
+                throw "$key cannot combine platform 'any' with runtime-specific platforms"
+            }
             if ($DownloadPackages) {
                 $zip = Join-Path $tempRoot "$($plugin.id)-$($version.version).zip"
                 Invoke-WebRequest -Uri $uri -OutFile $zip -MaximumRedirection 5 -TimeoutSec 120
                 $actual = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
                 if ($actual -cne [string]$version.sha256) { throw "$key SHA-256 mismatch" }
-                & (Join-Path $PSScriptRoot "validate-package.ps1") `
-                    -PackagePath $zip -ExpectedId ([string]$plugin.id) `
-                    -ExpectedVersion ([string]$version.version) `
-                    -ExpectedSdkAbi ([int]$version.sdkAbi) `
-                    -ExpectedSdkMinVersion ([string]$version.sdkMinVersion) `
-                    -AllowBundledContracts:($plugin.channel -eq "official") | Out-Null
+                $packageValidation = @{
+                    PackagePath = $zip
+                    ExpectedId = [string]$plugin.id
+                    ExpectedVersion = [string]$version.version
+                    ExpectedSdkAbi = [int]$version.sdkAbi
+                    ExpectedSdkMinVersion = [string]$version.sdkMinVersion
+                    AllowBundledContracts = ($plugin.channel -eq "official")
+                }
+                if ($plugin.channel -eq "community") {
+                    $packageValidation.ManifestSchemaPath = $manifestSchema
+                    $packageValidation.ExpectedName = [string]$plugin.name
+                    $packageValidation.ExpectedDescription = [string]$plugin.description
+                    $packageValidation.ExpectedAuthor = [string]$plugin.author
+                    $packageValidation.ExpectedLicense = [string]$plugin.license
+                    $packageValidation.ExpectedHomepage = [string]$plugin.homepage
+                }
+                & (Join-Path $PSScriptRoot "validate-package.ps1") @packageValidation | Out-Null
             }
         }
     }
@@ -74,4 +107,3 @@ finally {
     }
 }
 Write-Host "Validated $($ids.Count) plugins and $($versions.Count) versions."
-

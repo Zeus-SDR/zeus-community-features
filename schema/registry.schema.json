@@ -1,35 +1,85 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Zeus-SDR/openhpsdr-zeus/main/docs/plugins/registry.schema.json",
-  "title": "Openhpsdr-Zeus plugin registry",
-  "description": "Schema for registry.json hosted by the Zeus-SDR/zeus-community-features repo.",
+  "$id": "https://raw.githubusercontent.com/Zeus-SDR/zeus-community-features/main/schema/registry.schema.json",
+  "title": "Zeus community feature registry",
+  "description": "Authoritative schema for registry.json. Repository policy additionally restricts outside submissions to channel=community, verified=false, and no subscription field.",
   "type": "object",
+  "additionalProperties": false,
   "required": ["schemaVersion", "generated", "plugins"],
   "properties": {
-    "schemaVersion": { "type": "integer", "const": 1 },
-    "generated": { "type": "string", "format": "date-time" },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Catalog schema revision consumed by SDK ABI 1."
+    },
+    "generated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC RFC 3339 timestamp for the latest catalog edit."
+    },
     "plugins": {
       "type": "array",
       "items": { "$ref": "#/$defs/pluginEntry" }
     }
   },
   "$defs": {
+    "reverseDnsId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z0-9]+)+$",
+      "description": "Permanent lowercase reverse-DNS feature ID."
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+([+-][0-9A-Za-z.-]+)?$"
+    },
+    "strictSemver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
     "pluginEntry": {
       "type": "object",
-      "required": ["id", "channel", "name", "versions"],
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "channel",
+        "name",
+        "description",
+        "author",
+        "license",
+        "homepage",
+        "categories",
+        "verified",
+        "versions"
+      ],
       "properties": {
-        "id": { "type": "string" },
-        "channel": { "type": "string", "enum": ["official", "community"] },
-        "name": { "type": "string" },
-        "description": { "type": "string" },
-        "author": { "type": "string" },
-        "license": { "type": "string" },
-        "homepage": { "type": "string", "format": "uri" },
+        "id": { "$ref": "#/$defs/reverseDnsId" },
+        "channel": {
+          "type": "string",
+          "enum": ["official", "community"],
+          "description": "Features UI lane. Outside submissions must use community."
+        },
+        "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "author": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "license": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "homepage": { "type": "string", "format": "uri", "pattern": "^https://" },
         "categories": {
           "type": "array",
-          "items": { "type": "string" }
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
         },
-        "verified": { "type": "boolean" },
+        "verified": {
+          "type": "boolean",
+          "description": "Maintainer-controlled metadata. Outside submissions must use false."
+        },
+        "subscription": {
+          "$ref": "#/$defs/subscription",
+          "description": "Official catalog compatibility field; forbidden in community submissions."
+        },
         "versions": {
           "type": "array",
           "minItems": 1,
@@ -37,38 +87,51 @@
         }
       }
     },
+    "subscription": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "monthlyPriceCents", "currency"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "monthlyPriceCents": { "type": "integer", "minimum": 0 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "checkoutUrl": {
+          "type": ["string", "null"],
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "notes": { "type": ["string", "null"], "maxLength": 300 }
+      }
+    },
     "pluginVersion": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["version", "sdkAbi", "sdkMinVersion", "platforms", "downloadUrl", "sha256"],
       "properties": {
-        "version": {
-          "type": "string",
-          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+([+-][0-9A-Za-z.-]+)?$"
-        },
+        "version": { "$ref": "#/$defs/semver" },
         "sdkAbi": { "type": "integer", "minimum": 1 },
-        "sdkMinVersion": {
-          "type": "string",
-          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
-        },
+        "sdkMinVersion": { "$ref": "#/$defs/strictSemver" },
         "platforms": {
           "type": "array",
           "minItems": 1,
+          "uniqueItems": true,
           "items": {
             "type": "string",
-            "enum": ["any", "linux-x64", "linux-arm64", "win-x64", "osx-x64", "osx-arm64"]
+            "enum": ["any", "linux-x64", "linux-arm64", "win-x64", "win-arm64", "osx-x64", "osx-arm64"]
           }
         },
         "downloadUrl": {
           "type": "string",
           "format": "uri",
-          "pattern": "^https://"
+          "pattern": "^https://",
+          "description": "Immutable HTTPS ZIP URL."
         },
         "sha256": {
           "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Lowercase SHA-256 of the exact release ZIP."
         }
       }
     }
   }
 }
-

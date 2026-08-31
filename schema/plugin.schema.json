@@ -1,50 +1,42 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Zeus-SDR/openhpsdr-zeus/main/docs/plugins/plugin.schema.json",
-  "title": "Openhpsdr-Zeus plugin manifest",
-  "description": "Schema for plugin.json. SchemaVersion 1 is the only version recognised by SDK ABI 1.",
+  "$id": "https://raw.githubusercontent.com/Zeus-SDR/zeus-community-features/main/schema/plugin.schema.json",
+  "title": "Zeus community feature manifest",
+  "description": "Authoritative schema for the top-level plugin.json embedded in a community feature ZIP. Schema version 1 is consumed by SDK ABI 1.",
   "type": "object",
-  "required": ["schemaVersion", "id", "name", "version", "sdk", "entrypoint"],
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "version",
+    "author",
+    "description",
+    "homepage",
+    "license",
+    "sdk",
+    "entrypoint",
+    "capabilities",
+    "permissions"
+  ],
   "properties": {
     "schemaVersion": {
       "type": "integer",
-      "const": 1
+      "const": 1,
+      "description": "Manifest shape revision."
     },
-    "id": {
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9.]*[a-z0-9]$",
-      "description": "Reverse-DNS plugin id, e.g. com.example.amplifier"
-    },
-    "name": { "type": "string", "minLength": 1 },
-    "version": {
-      "type": "string",
-      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+([+-][0-9A-Za-z.-]+)?$"
-    },
-    "author": { "type": "string" },
-    "description": { "type": "string" },
-    "homepage": { "type": "string", "format": "uri" },
-    "license": { "type": "string" },
-    "sdk": {
-      "type": "object",
-      "required": ["abi", "minVersion"],
-      "properties": {
-        "abi": { "type": "integer", "minimum": 1 },
-        "minVersion": {
-          "type": "string",
-          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
-        }
-      }
-    },
-    "entrypoint": {
-      "type": "object",
-      "required": ["assembly"],
-      "properties": {
-        "assembly": { "type": "string", "pattern": "\\.dll$" },
-        "type": { "type": ["string", "null"] }
-      }
-    },
+    "id": { "$ref": "#/$defs/reverseDnsId" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "version": { "$ref": "#/$defs/semver" },
+    "author": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "homepage": { "type": "string", "format": "uri", "pattern": "^https://" },
+    "license": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "sdk": { "$ref": "#/$defs/sdkRequirement" },
+    "entrypoint": { "$ref": "#/$defs/entrypoint" },
     "capabilities": {
       "type": "array",
+      "uniqueItems": true,
       "items": {
         "type": "string",
         "enum": [
@@ -57,43 +49,151 @@
           "PersistSettings"
         ]
       },
-      "uniqueItems": true
+      "description": "Declare only capabilities actually used. ABI 1 grants declared capabilities without a prompt."
+    },
+    "permissions": { "$ref": "#/$defs/permissions" },
+    "ui": {
+      "oneOf": [
+        { "$ref": "#/$defs/ui" },
+        { "type": "null" }
+      ]
+    },
+    "audio": {
+      "oneOf": [
+        { "$ref": "#/$defs/audio" },
+        { "type": "null" }
+      ]
+    }
+  },
+  "$defs": {
+    "reverseDnsId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z0-9]+)+$",
+      "description": "Permanent lowercase reverse-DNS feature ID."
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+([+-][0-9A-Za-z.-]+)?$"
+    },
+    "strictSemver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "packagePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![\\\\/])(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+$",
+      "description": "Relative path inside the ZIP; absolute paths and parent traversal are forbidden."
+    },
+    "sdkRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["abi", "minVersion"],
+      "properties": {
+        "abi": { "type": "integer", "const": 1 },
+        "minVersion": { "$ref": "#/$defs/strictSemver" }
+      }
+    },
+    "entrypoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assembly"],
+      "properties": {
+        "assembly": {
+          "type": "string",
+          "pattern": "^[^/\\\\]+\\.dll$",
+          "description": "Plain top-level DLL filename."
+        },
+        "type": { "type": ["string", "null"], "minLength": 1 }
+      }
     },
     "permissions": {
       "type": "object",
+      "additionalProperties": false,
+      "required": ["network", "fileSystemRead", "fileSystemWrite"],
       "properties": {
         "network": { "type": "boolean" },
         "fileSystemRead": { "type": "boolean" },
         "fileSystemWrite": { "type": "boolean" }
       },
-      "additionalProperties": false
+      "description": "Disclosure metadata in ABI 1, not an operating-system sandbox."
     },
     "ui": {
-      "type": ["object", "null"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modules", "panels"],
       "properties": {
         "modules": {
           "type": "array",
-          "items": { "type": "string" }
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "allOf": [
+              { "$ref": "#/$defs/packagePath" },
+              { "pattern": "\\.m?js$" }
+            ]
+          }
         },
         "panels": {
           "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["id", "title", "slot"],
-            "properties": {
-              "id": { "type": "string" },
-              "title": { "type": "string" },
-              "icon": { "type": "string" },
-              "slot": { "type": "string" }
-            }
-          }
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/panel" }
+        }
+      }
+    },
+    "panel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "slot", "category"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "icon": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "slot": {
+          "type": "string",
+          "anyOf": [
+            { "pattern": "^workspace\\.[a-z][a-z0-9-]*$" },
+            { "const": "tx-audio-tools.chain" },
+            { "const": "rx-audio-tools.chain" }
+          ]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "spectrum",
+            "vfo",
+            "meters",
+            "dsp",
+            "log",
+            "tools",
+            "amplifiers",
+            "controls",
+            "switches",
+            "plugins"
+          ]
         }
       }
     },
     "audio": {
-      "type": ["object", "null"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "slot", "channels", "sampleRate"],
       "properties": {
-        "vst3Path": { "type": ["string", "null"] },
+        "format": { "type": "string", "enum": ["vst3", "au"] },
+        "auComponentId": {
+          "type": ["string", "null"],
+          "pattern": "^[^:]{4}:[^:]{4}:[^:]{4}$"
+        },
+        "vst3Path": {
+          "oneOf": [
+            { "$ref": "#/$defs/packagePath" },
+            { "type": "null" }
+          ]
+        },
+        "vst3Uid": { "type": ["string", "null"], "maxLength": 512 },
         "slot": {
           "type": "string",
           "enum": ["tx.post-leveler", "tx.pre-cfc", "rx.post-demod"]
@@ -104,4 +204,3 @@
     }
   }
 }
-
