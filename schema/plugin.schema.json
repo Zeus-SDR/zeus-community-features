@@ -82,8 +82,8 @@
     "packagePath": {
       "type": "string",
       "minLength": 1,
-      "pattern": "^(?![\\\\/])(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+$",
-      "description": "Relative path inside the ZIP; absolute paths and parent traversal are forbidden."
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*:)(?!.*//)(?!\\.\\.?/)(?!.*[/]\\.\\.?(?:[/]|$))(?!.*[. ](?:[/]|$)).+$",
+      "description": "Forward-slash relative path inside the ZIP. Empty/dot segments, parent traversal, colons, trailing dot/space aliases, and backslashes are forbidden; package validation applies the remaining cross-platform collision rules."
     },
     "sdkRequirement": {
       "type": "object",
@@ -101,7 +101,7 @@
       "properties": {
         "assembly": {
           "type": "string",
-          "pattern": "^[^/\\\\]+\\.dll$",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.dll$",
           "description": "Plain top-level DLL filename."
         },
         "type": { "type": ["string", "null"], "minLength": 1 }

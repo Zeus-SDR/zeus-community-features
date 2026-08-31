@@ -1,8 +1,10 @@
 # Contributing a Zeus community feature
 
 This is the canonical guide for feature authors, reviewers, and automation
-agents. The JSON schemas under `schema/` are the machine-readable contract. If
-prose and a schema disagree, stop and open an issue rather than guessing.
+agents. The JSON schemas under `schema/` are the machine-readable JSON-shape
+contract; the scripts under `tools/` enforce catalog, archive, and cross-platform
+path policy. If the guide, a schema, and a validator disagree, stop and open an
+issue rather than guessing.
 
 A feature is developed and released from the author's own source repository.
 This repository hosts the public SDK snapshot, starter template, validation
@@ -62,8 +64,8 @@ license, and notices. List each additional managed DLL by plain filename with
 `-AdditionalAsset`. Both parameters may be repeated/array-valued. For example:
 
 ```powershell
-pwsh templates/hello-world/build-package.ps1 `
-  -ManagedDependency Example.Protocol.dll `
+& ./templates/hello-world/build-package.ps1 `
+  -ManagedDependency @("Example.Protocol.dll") `
   -AdditionalAsset @("ui/chunk.js", "assets")
 ```
 
