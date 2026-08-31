@@ -82,7 +82,7 @@
     "packagePath": {
       "type": "string",
       "minLength": 1,
-      "pattern": "^(?![\\\\/])(?!.*(^|[\\\\/])\\.\\.([\\\\/]|$)).+$",
+      "pattern": "^(?![\\\\/])(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+$",
       "description": "Relative path inside the ZIP; absolute paths and parent traversal are forbidden."
     },
     "sdkRequirement": {

@@ -55,6 +55,21 @@ The ZIP must contain exactly one top-level `plugin.json` and the entrypoint DLL
 named by that manifest. Do not bundle `Zeus.Plugins.Contracts.dll`, framework
 assemblies, secrets, credentials, build caches, or unrelated source files.
 
+The copied packaging script automatically includes declared `ui.modules`, a
+declared bundled `audio.vst3Path`, the entrypoint `.deps.json`, the feature
+license, and notices. List each additional managed DLL by plain filename with
+`-ManagedDependency`; list other feature-relative files or directories with
+`-AdditionalAsset`. Both parameters may be repeated/array-valued. For example:
+
+```powershell
+pwsh templates/hello-world/build-package.ps1 `
+  -ManagedDependency Example.Protocol.dll `
+  -AdditionalAsset @("ui/chunk.js", "assets")
+```
+
+Every input is containment-checked, links are rejected, and collisions fail the
+build. Do not modify the script to bypass these checks.
+
 ## 3. Manifest schema and naming rules
 
 `schema/plugin.schema.json` is authoritative. Store submissions use schema
@@ -237,6 +252,7 @@ dotnet build Zeus.CommunityFeatures.slnx -c Release --nologo
 npx --yes -p ajv-cli@5.0.0 -p ajv-formats@3.0.1 ajv validate --spec=draft2020 --strict=false -c ajv-formats -s schema/registry.schema.json -d registry.json
 npx --yes -p ajv-cli@5.0.0 -p ajv-formats@3.0.1 ajv validate --spec=draft2020 --strict=false -c ajv-formats -s schema/plugin.schema.json -d templates/hello-world/plugin.json
 pwsh tools/validate-sdk-boundary.ps1
+pwsh tools/test-package-validator.ps1
 pwsh tools/validate-registry.ps1
 pwsh tools/validate-package.ps1 `
   -PackagePath C:/absolute/path/to/your-feature-1.0.0.zip `
@@ -306,8 +322,8 @@ approval from both is not required.
 
 Once a maintainer merges the listing into `main`, it becomes part of the public
 catalog. Zeus shows it in **Features → Community** after the catalog cache
-refreshes (normally within about five minutes, or on the next manual refresh).
-Users still choose whether to install it. Merge does not auto-install the
-feature, set `verified` to `true`, or turn execution into a sandbox.
+refreshes (normally within about five minutes). Users still choose whether to
+install it. Merge does not auto-install the feature, set `verified` to `true`,
+or turn execution into a sandbox.
 
 Security reports do not belong in a public issue. Follow `SECURITY.md`.

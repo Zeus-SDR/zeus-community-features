@@ -36,6 +36,9 @@ jobs:
       - name: Audit public SDK source boundary
         shell: pwsh
         run: ./tools/validate-sdk-boundary.ps1
+      - name: Test package path safety
+        shell: pwsh
+        run: ./tools/test-package-validator.ps1
 
   build:
     name: SDK and template build (${{ matrix.name }})

@@ -17,7 +17,10 @@ The package is written to
 `artifacts/com.example.zeus.helloworld/com.example.zeus.helloworld-1.0.0.zip`.
 The packaging script derives the ID, version, and entrypoint from `plugin.json`;
 after copying the template, make the repository-root `LICENSE` your feature's
-real license (and add `THIRD_PARTY_NOTICES.md` there when needed).
+real license (and add `THIRD_PARTY_NOTICES.md` there when needed). It includes
+manifest-declared UI modules and a bundled VST3 automatically. Pass additional
+managed DLL filenames with `-ManagedDependency` and other feature-relative
+files/directories with `-AdditionalAsset`; see the root `CONTRIBUTING.md`.
 
 The sample exposes
 `GET /api/plugins/com.example.zeus.helloworld/hello`. It requests no radio,

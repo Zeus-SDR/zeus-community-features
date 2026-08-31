@@ -20,38 +20,69 @@ $resolved = (Resolve-Path -LiteralPath $PackagePath).Path
 $archive = [IO.Compression.ZipFile]::OpenRead($resolved)
 try {
     if ($archive.Entries.Count -gt 4096) { throw "Too many ZIP entries" }
-    $names = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $entriesByPath = [Collections.Generic.Dictionary[string, IO.Compression.ZipArchiveEntry]]::new(
+        [StringComparer]::OrdinalIgnoreCase)
     [long] $expanded = 0
     foreach ($entry in $archive.Entries) {
-        $name = $entry.FullName.Replace("\", "/")
-        if ([string]::IsNullOrWhiteSpace($name) -or $name.StartsWith("/") -or
-            $name -match "^[A-Za-z]:" -or ($name.Split("/") -contains "..")) {
+        if ($entry.FullName.Contains("\")) {
+            throw "ZIP paths must use forward slashes: $($entry.FullName)"
+        }
+        $rawName = $entry.FullName.Replace("\", "/")
+        if ([string]::IsNullOrWhiteSpace($rawName) -or $rawName.StartsWith("/") -or
+            $rawName -match "^[A-Za-z]:") {
             throw "Unsafe ZIP path: $($entry.FullName)"
         }
-        if (-not $names.Add($name)) { throw "Duplicate/case-colliding ZIP path: $name" }
-        if ((($entry.ExternalAttributes -shr 16) -band 0xF000) -eq 0xA000) {
-            throw "Symbolic links are forbidden: $name"
+        $pathForSegments = $rawName.TrimEnd("/")
+        if ([string]::IsNullOrWhiteSpace($pathForSegments)) {
+            throw "Unsafe ZIP path: $($entry.FullName)"
         }
-        $leaf = [IO.Path]::GetFileNameWithoutExtension($name)
-        if ($leaf -match "^(?i:con|prn|aux|nul|com[1-9]|lpt[1-9])$") {
-            throw "Windows-reserved ZIP path: $name"
+        $segments = @($pathForSegments.Split("/"))
+        $canonicalSegments = [Collections.Generic.List[string]]::new()
+        foreach ($segment in $segments) {
+            if ([string]::IsNullOrEmpty($segment) -or $segment -in @(".", "..") -or
+                $segment -match '[<>:"|?*\x00-\x1F]' -or $segment -match '[. ]$') {
+                throw "Unsafe or non-portable ZIP path: $($entry.FullName)"
+            }
+            $normalized = $segment.Normalize([Text.NormalizationForm]::FormC)
+            if ($segment -cne $normalized) {
+                throw "ZIP paths must use Unicode normalization form C: $($entry.FullName)"
+            }
+            $reservedStem = $segment.Split(".")[0]
+            if ($reservedStem -match "^(?i:con|prn|aux|nul|com[1-9]|lpt[1-9])$") {
+                throw "Windows-reserved ZIP path: $($entry.FullName)"
+            }
+            $canonicalSegments.Add($normalized)
+        }
+        $canonicalPath = [string]::Join("/", $canonicalSegments)
+        if (-not $entriesByPath.TryAdd($canonicalPath, $entry)) {
+            throw "Duplicate or platform-colliding ZIP path: $canonicalPath"
+        }
+        if ((($entry.ExternalAttributes -shr 16) -band 0xF000) -eq 0xA000) {
+            throw "Symbolic links are forbidden: $canonicalPath"
         }
         $expanded += $entry.Length
         if ($expanded -gt 1073741824) { throw "Expanded package exceeds 1 GiB" }
         if ($entry.CompressedLength -gt 0 -and $entry.Length -gt 1048576 -and
             ($entry.Length / $entry.CompressedLength) -gt 200) {
-            throw "Suspicious compression ratio: $name"
+            throw "Suspicious compression ratio: $canonicalPath"
         }
     }
 
-    $manifestEntries = @($archive.Entries | Where-Object FullName -CEQ "plugin.json")
-    if ($manifestEntries.Count -ne 1) { throw "Expected one top-level plugin.json" }
-    $reader = [IO.StreamReader]::new($manifestEntries[0].Open())
+    $manifestEntry = $null
+    if (-not $entriesByPath.TryGetValue("plugin.json", [ref]$manifestEntry) -or
+        [string]::IsNullOrEmpty($manifestEntry.Name) -or
+        $manifestEntry.FullName -cne "plugin.json") {
+        throw "Expected one top-level plugin.json"
+    }
+    $reader = [IO.StreamReader]::new($manifestEntry.Open())
     try { $manifestJson = $reader.ReadToEnd() }
     finally { $reader.Dispose() }
 
     if ($ManifestSchemaPath) {
-        if (-not ($archive.Entries | Where-Object FullName -CEQ "LICENSE")) {
+        $licenseEntry = $null
+        if (-not $entriesByPath.TryGetValue("LICENSE", [ref]$licenseEntry) -or
+            [string]::IsNullOrEmpty($licenseEntry.Name) -or
+            $licenseEntry.FullName -cne "LICENSE") {
             throw "Community packages must contain a top-level LICENSE"
         }
         $resolvedSchema = (Resolve-Path -LiteralPath $ManifestSchemaPath).Path
@@ -97,11 +128,13 @@ try {
         $entrypoint.Contains("/") -or $entrypoint.Contains("\") -or $entrypoint.Contains("..")) {
         throw "Entrypoint must be a plain DLL filename"
     }
-    if (-not ($archive.Entries | Where-Object FullName -CEQ $entrypoint)) {
+    $entrypointEntry = $null
+    if (-not $entriesByPath.TryGetValue($entrypoint, [ref]$entrypointEntry) -or
+        $entrypointEntry.FullName -cne $entrypoint) {
         throw "Missing entrypoint: $entrypoint"
     }
-    if (-not $AllowBundledContracts -and ($archive.Entries | Where-Object {
-        [IO.Path]::GetFileName($_.FullName) -ieq "Zeus.Plugins.Contracts.dll"
+    if (-not $AllowBundledContracts -and ($entriesByPath.Keys | Where-Object {
+        [IO.Path]::GetFileName($_) -ieq "Zeus.Plugins.Contracts.dll"
     })) { throw "Do not bundle Zeus.Plugins.Contracts.dll" }
     $uiModules = @()
     if ($null -ne $manifest.ui -and $null -ne $manifest.ui.modules) {
@@ -109,11 +142,22 @@ try {
     }
     foreach ($module in $uiModules) {
         $path = [string]$module
+        $moduleEntry = $null
         if ($path.Contains("..") -or $path.StartsWith("/") -or
             ($path -cnotmatch "\.m?js$") -or
-            -not ($archive.Entries | Where-Object FullName -CEQ $path)) {
+            -not $entriesByPath.TryGetValue($path, [ref]$moduleEntry) -or
+            $moduleEntry.FullName -cne $path) {
             throw "Unsafe or missing UI module: $path"
         }
+    }
+    if ($null -ne $manifest.audio -and
+        -not [string]::IsNullOrWhiteSpace([string]$manifest.audio.vst3Path)) {
+        $vst3Path = ([string]$manifest.audio.vst3Path).Replace("\", "/").TrimEnd("/")
+        $hasBundledVst = @($entriesByPath.Keys) -ccontains $vst3Path -or
+            @($entriesByPath.Keys | Where-Object {
+                $_.StartsWith($vst3Path + "/", [StringComparison]::Ordinal)
+            }).Count -gt 0
+        if (-not $hasBundledVst) { throw "Missing bundled VST3 path: $vst3Path" }
     }
     [pscustomobject]@{
         id = $manifest.id
