@@ -6,3 +6,5 @@ node_modules/
 *.suo
 .DS_Store
 Thumbs.db
+.artifacts/
+.claude/worktrees/
