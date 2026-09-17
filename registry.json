@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generated": "2026-07-20T22:32:00Z",
+  "generated": "2026-09-17T13:57:33Z",
   "plugins": [
     {
       "id": "com.openhpsdr.zeus.plugins.localsignon",
