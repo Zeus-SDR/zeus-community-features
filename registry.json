@@ -9,7 +9,7 @@
       "description": "Entitlement plugin for offline Zeus account sign-on. User management gates access by subscription and expiry.",
       "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
       "license": "GPL-2.0-or-later",
-      "homepage": "https://github.com/Kb2uka/openhpsdr-zeus-plugins",
+      "homepage": "https://zeussdr.com",
       "categories": [
         "auth"
       ],
@@ -41,7 +41,7 @@
       "description": "Entitlement plugin for secure WebRTC remote radio access. Zeus gates signaling, session setup, and active operation by this plugin id.",
       "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
       "license": "GPL-2.0-or-later",
-      "homepage": "https://github.com/Zeus-SDR/openhpsdr-zeus-plugins",
+      "homepage": "https://zeussdr.com",
       "categories": [
         "auth"
       ],
@@ -406,7 +406,7 @@
       "description": "Unattended net monitor (zeus-la5). Parks on a frequency and logs each over: captures the audio, transcribes speech to text on-device (selectable Whisper or NVIDIA Parakeet engine, optional GPU), extracts callsigns and enriches them via QRZ, builds a roster of who checked in, and writes a local-LLM 'what was discussed' digest. Watchword alerts e-mail/push you (with a clip, time and frequency) when your call or a keyword is heard. Searchable archive with per-over replay. Speech + AI engines download on first enable (offline thereafter). Extracted from Zeus core.",
       "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
       "license": "GPL-2.0-or-later",
-      "homepage": "https://github.com/OpenHPSDR-Zeus-org/openhpsdr-zeus-plugins/tree/develop/monitors/Voyeur",
+      "homepage": "https://zeussdr.com",
       "categories": [
         "monitors"
       ],
@@ -591,7 +591,7 @@
       "description": "Unattended net monitor (zeus-la5). Parks on a frequency and logs each over: captures the audio, transcribes speech to text on-device (selectable Whisper or NVIDIA Parakeet engine, optional GPU), extracts callsigns and enriches them via QRZ, builds a roster of who checked in, and writes a local-LLM 'what was discussed' digest. Watchword alerts e-mail/push you (with a clip, time and frequency) when your call or a keyword is heard. Searchable archive with per-over replay. Speech + AI engines download on first enable (offline thereafter). Extracted from Zeus core.",
       "author": "Douglas J. Cerrato (KB2UKA), Christian Suarez (N9WAR)",
       "license": "GPL-2.0-or-later",
-      "homepage": "https://github.com/OpenHPSDR-Zeus-org/openhpsdr-zeus-plugins/tree/main/monitors/Voyeur",
+      "homepage": "https://zeussdr.com",
       "categories": [
         "monitors"
       ],
