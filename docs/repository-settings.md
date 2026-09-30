@@ -41,3 +41,4 @@ the published release itself to report as immutable before it succeeds. Do not
 disable the setting while any community package is published. The publishing
 job also verifies GitHub's release attestation and asset digest before it
 reports success.
+
