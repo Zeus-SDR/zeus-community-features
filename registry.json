@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generated": "2026-09-30T21:26:37Z",
+  "generated": "2026-10-12T14:05:56Z",
   "plugins": [
     {
       "id": "com.openhpsdr.zeus.plugins.localsignon",
@@ -765,6 +765,36 @@
             "repository": "https://github.com/AlarmGuyPro/Zeus-PowerStation",
             "commit": "00e8a6e2583c66e2659be0c869893039e7fb95c3",
             "package": "https://github.com/AlarmGuyPro/Zeus-PowerStation/releases/download/v1.1.0/io.github.alarmguypro.powerstation-1.1.0.zip"
+          }
+        }
+      ]
+    },
+    {
+      "id": "com.radiopathology.floatingvfo",
+      "channel": "community",
+      "name": "Floating VFO",
+      "description": "A scalable, transparent VFO frequency readout that floats above everything in Zeus, with local time and UTC underneath.",
+      "author": "KC2RGW",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://github.com/kingsqueak/zeus-floating-vfo",
+      "categories": [
+        "tools"
+      ],
+      "verified": false,
+      "versions": [
+        {
+          "version": "1.1.2",
+          "sdkAbi": 1,
+          "sdkMinVersion": "1.5.0",
+          "platforms": [
+            "any"
+          ],
+          "downloadUrl": "https://github.com/Zeus-SDR/zeus-community-features/releases/download/community-com.radiopathology.floatingvfo-v1.1.2/com.radiopathology.floatingvfo-1.1.2.zip",
+          "sha256": "65809df8123b3bdef5a17f79cb32377a314162e8033191878f18839163a3690b",
+          "source": {
+            "repository": "https://github.com/kingsqueak/zeus-floating-vfo",
+            "commit": "d9b901aa4e2b20462d41af59d11ed51d4eb71023",
+            "package": "https://github.com/kingsqueak/zeus-floating-vfo/releases/download/v1.1.2/com.radiopathology.floatingvfo-1.1.2.zip"
           }
         }
       ]
